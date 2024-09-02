@@ -98,8 +98,10 @@ end
 
 maxPetSpeed()
 antiAFK()
+print("i was here")
 
 while true do
+    print("i was here...")
     task.wait()
     tapAura()
     -- activateUlti()
