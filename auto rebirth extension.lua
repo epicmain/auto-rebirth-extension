@@ -70,6 +70,7 @@ end
 
 
 local function activateUlti()
+    print("activate ult")
     -- activate ultimate
     local ultiActive = require(RepStor.Library.Client.UltimateCmds).IsCharged("Nightmare")
     if ultiActive then
