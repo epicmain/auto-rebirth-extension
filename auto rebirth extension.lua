@@ -1,4 +1,6 @@
+print("hello")
 loadstring(game:HttpGet("https://raw.githubusercontent.com/fdvll/pet-simulator-99/main/cpuReducer.lua"))()
+print("hello2")
 
 local RepStor = game:GetService("ReplicatedStorage")
 local LocalPlayer = game.Players.LocalPlayer
