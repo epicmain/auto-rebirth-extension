@@ -1,6 +1,4 @@
-print("hello")
 loadstring(game:HttpGet("https://raw.githubusercontent.com/fdvll/pet-simulator-99/main/cpuReducer.lua"))()
-print("hello2")
 
 local RepStor = game:GetService("ReplicatedStorage")
 local LocalPlayer = game.Players.LocalPlayer
@@ -71,14 +69,14 @@ end
 -- end
 
 
--- local function activateUlti()
---     -- activate ultimate
---     local ultiActive = require(RepStor.Library.Client.UltimateCmds).IsCharged("Nightmare")
---     if ultiActive then
---         print("Using Ultimate...")
---         getsenv(game:GetService("Players").LocalPlayer.PlayerScripts.Scripts.GUIs["Ultimates HUD"]).activateUltimate()
---     end
--- end
+local function activateUlti()
+    -- activate ultimate
+    local ultiActive = require(RepStor.Library.Client.UltimateCmds).IsCharged("Nightmare")
+    if ultiActive then
+        print("Using Ultimate...")
+        getsenv(game:GetService("Players").LocalPlayer.PlayerScripts.Scripts.GUIs["Ultimates HUD"]).activateUltimate()
+    end
+end
 
 local function antiAFK()
     -- disable idle tracking event
@@ -99,13 +97,11 @@ end
 
 
 antiAFK()
-print("i was here")
 
 while true do
-    print("i was here...")
     task.wait()
     tapAura()
-    -- activateUlti()
+    activateUlti()
     -- autoFruits()
 end
 
