@@ -10,10 +10,10 @@ local maxBreakableDistance = 50  -- 150 is max
 -- local fastestHatchTime = getsenv(game:GetService("Players").LocalPlayer.PlayerScripts.Scripts.Game["Egg Opening Frontend"]).computeSpeedMult() * 2
 local timeStart = 0
 
-local fruitCmds = require(RepStor.Library.Client.FruitCmds)
-local availableFruits = require(RepStor.Library).Save.Get().Inventory.Fruit
-local maxFruit = fruitCmds.ComputeFruitQueueLimit()
-local totalCurrentFruits = 0
+-- local fruitCmds = require(RepStor.Library.Client.FruitCmds)
+-- local availableFruits = require(RepStor.Library).Save.Get().Inventory.Fruit
+-- local maxFruit = fruitCmds.ComputeFruitQueueLimit()
+-- local totalCurrentFruits = 0
 
 
 local function tapAura()
@@ -32,30 +32,30 @@ local function tapAura()
 end
 
 
-local function autoFruits()
-    -- auto fruits
-    local activeFruitTable = {
-        ["Apple"] = 0,
-        ["Banana"] = 0,
-        ["Orange"] = 0,
-        ["Pineapple"] = 0,
-        ["Watermelon"] = 0,
-        ["Rainbow"] = 0
-    }  -- stores currently used fruit amounts
-    for fruitName, tb in fruitCmds.GetActiveFruits() do
-        activeFruitTable[fruitName] = #tb
-        totalCurrentFruits = totalCurrentFruits + #tb
-    end
+-- local function autoFruits()
+--     -- auto fruits
+--     local activeFruitTable = {
+--         ["Apple"] = 0,
+--         ["Banana"] = 0,
+--         ["Orange"] = 0,
+--         ["Pineapple"] = 0,
+--         ["Watermelon"] = 0,
+--         ["Rainbow"] = 0
+--     }  -- stores currently used fruit amounts
+--     for fruitName, tb in fruitCmds.GetActiveFruits() do
+--         activeFruitTable[fruitName] = #tb
+--         totalCurrentFruits = totalCurrentFruits + #tb
+--     end
 
-    if totalCurrentFruits < (maxFruit * 6) then
-        print("Eating Fruits...")
-        for fruitId, tb in pairs(availableFruits) do
-            task.wait(0.2)
-            RepStor:WaitForChild("Network"):WaitForChild("Fruits: Consume"):FireServer(fruitId, maxFruit - activeFruitTable[tb["id"]])
-        end
-        print("Done Eating Fruits...")
-    end
-end
+--     if totalCurrentFruits < (maxFruit * 6) then
+--         print("Eating Fruits...")
+--         for fruitId, tb in pairs(availableFruits) do
+--             task.wait(0.2)
+--             RepStor:WaitForChild("Network"):WaitForChild("Fruits: Consume"):FireServer(fruitId, maxFruit - activeFruitTable[tb["id"]])
+--         end
+--         print("Done Eating Fruits...")
+--     end
+-- end
 
 
 -- local function autoHatchWithoutAnimation()
@@ -106,7 +106,7 @@ while true do
     task.wait()
     tapAura()
     -- activateUlti()
-    autoFruits()
+    -- autoFruits()
 end
 
 
