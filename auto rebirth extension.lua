@@ -96,7 +96,6 @@ local function antiAFK()
 end
 
 
-maxPetSpeed()
 antiAFK()
 print("i was here")
 
