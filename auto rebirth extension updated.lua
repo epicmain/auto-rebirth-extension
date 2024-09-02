@@ -107,6 +107,6 @@ while true do
     tapAura()
     -- activateUlti()
     autoFruits()
-
+end
 
 
