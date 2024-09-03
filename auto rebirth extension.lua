@@ -1,109 +1,225 @@
-loadstring(game:HttpGet("https://raw.githubusercontent.com/fdvll/pet-simulator-99/main/cpuReducer.lua"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/fdvll/pet-simulator-99/main/waitForGameLoad.lua"))()
 
-local RepStor = game:GetService("ReplicatedStorage")
-local LocalPlayer = game.Players.LocalPlayer
-local maxBreakableDistance = 50  -- 150 is max
--- local hatchAmount = require(RepStor.Library.Client.EggCmds).GetMaxHatch()
--- local bestEggName = 
--- local fastestHatchTime = getsenv(game:GetService("Players").LocalPlayer.PlayerScripts.Scripts.Game["Egg Opening Frontend"]).computeSpeedMult() * 2
-local timeStart = 0
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local LocalPlayer = game:GetService("Players").LocalPlayer
+local Workspace = game:GetService("Workspace")
 
--- local fruitCmds = require(RepStor.Library.Client.FruitCmds)
--- local availableFruits = require(RepStor.Library).Save.Get().Inventory.Fruit
--- local maxFruit = fruitCmds.ComputeFruitQueueLimit()
--- local totalCurrentFruits = 0
-
-
-local function tapAura()
-    local playerCFrame = LocalPlayer.Character:WaitForChild("HumanoidRootPart").CFrame
-    local nearestBreakable = nil
-    repeat 
-        nearestBreakable = getsenv(LocalPlayer.PlayerScripts.Scripts.GUIs["Auto Tapper"]).GetNearestBreakable()
-        task.wait(0.1)
-    until nearestBreakable and nearestBreakable:GetModelCFrame()
-
-    local breakableDistance = (nearestBreakable:GetModelCFrame().Position - playerCFrame.Position).Magnitude
-    -- auto break nearby breakables
-    if breakableDistance <= maxBreakableDistance then
-        RepStor.Network["Breakables_PlayerDealDamage"]:FireServer(nearestBreakable.Name)
-    end
+local map
+local PlaceId = game.PlaceId
+if PlaceId == 8737899170 then
+    map = Workspace.Map
+elseif PlaceId == 16498369169 then
+    map = Workspace.Map2
 end
 
+local unfinished = true
+local currentZone
 
--- local function autoFruits()
---     -- auto fruits
---     local activeFruitTable = {
---         ["Apple"] = 0,
---         ["Banana"] = 0,
---         ["Orange"] = 0,
---         ["Pineapple"] = 0,
---         ["Watermelon"] = 0,
---         ["Rainbow"] = 0
---     }  -- stores currently used fruit amounts
---     for fruitName, tb in fruitCmds.GetActiveFruits() do
---         activeFruitTable[fruitName] = #tb
---         totalCurrentFruits = totalCurrentFruits + #tb
---     end
+-- vvv Egg hatching variables vvv
+local mainEggs = game:GetService("Workspace")["__THINGS"].Eggs.Main
+local lowestNumberEgg = nil
+local timeStart = tick()
+local fastestHatchTime = getsenv(game:GetService("Players").LocalPlayer.PlayerScripts.Scripts.Game["Egg Opening Frontend"]).computeSpeedMult() * 2
+local hatchAmount = require(game:GetService("ReplicatedStorage").Library.Client.EggCmds).GetMaxHatch()
+-- ^^^ Egg hatching variables ^^^
 
---     if totalCurrentFruits < (maxFruit * 6) then
---         print("Eating Fruits...")
---         for fruitId, tb in pairs(availableFruits) do
---             task.wait(0.2)
---             RepStor:WaitForChild("Network"):WaitForChild("Fruits: Consume"):FireServer(fruitId, maxFruit - activeFruitTable[tb["id"]])
---         end
---         print("Done Eating Fruits...")
---     end
--- end
-
-
--- local function autoHatchWithoutAnimation()
---     -- disable egg hatch animation
---     hookfunction(getsenv(LocalPlayer.PlayerScripts.Scripts.Game["Egg Opening Frontend"]).PlayEggAnimation, function()
---         return
---     end)
-
---     -- auto hatch with delay
---     if (tick() - timeStart) >= fastestHatchTime then
---         RepStor.Network.Eggs_RequestPurchase:InvokeServer(bestEggName, hatchAmount)
---     end
--- end
-
-
-local function activateUlti()
-    print("activate ult")
-    -- activate ultimate
-    local ultiActive = require(RepStor.Library.Client.UltimateCmds).IsCharged("Ground Pound")
-    if ultiActive then
-        print("Using Ultimate...")
-        getsenv(game:GetService("Players").LocalPlayer.PlayerScripts.Scripts.GUIs["Ultimates HUD"]).activateUltimate()
-    end
+require(ReplicatedStorage.Library.Client.PlayerPet).CalculateSpeedMultiplier = function(...)
+    return 200
 end
 
-local function antiAFK()
-    -- disable idle tracking event
-    LocalPlayer.PlayerScripts.Scripts.Core["Idle Tracking"].Enabled = false
-    if getconnections then
-        for _, v in pairs(getconnections(LocalPlayer.Idled)) do
-            v:Disable()
+local function teleportToMaxZone()
+    local zoneName, maxZoneData = require(ReplicatedStorage.Library.Client.ZoneCmds).GetMaxOwnedZone()
+    while currentZone == zoneName do
+        zoneName, maxZoneData = require(ReplicatedStorage.Library.Client.ZoneCmds).GetMaxOwnedZone()
+        task.wait()
+    end
+    currentZone = zoneName
+    print("Teleporting to zone: " .. zoneName)
+
+    local zonePath
+    for _, v in pairs(map:GetChildren()) do
+        if string.find(v.Name, tostring(maxZoneData.ZoneNumber) .. " | " .. zoneName) then
+            zonePath = v
         end
-    else
-        LocalPlayer.Idled:Connect(function()
-            virtualUser:Button2Down(Vector2.new(0,0),workspace.CurrentCamera.CFrame)
-            task.wait(1)
-            virtualUser:Button2Up(Vector2.new(0,0),workspace.CurrentCamera.CFrame)
-        end)
     end
-    print("[Anti-AFK Activated!]")
-end
-
-
-antiAFK()
-
-while true do
+    LocalPlayer.Character.HumanoidRootPart.CFrame = zonePath:WaitForChild("PERSISTENT").Teleport.CFrame + Vector3.new(0, 10, 0)
     task.wait()
-    tapAura()
-    activateUlti()
-    -- autoFruits()
+
+    if not zonePath:FindFirstChild("INTERACT") then
+        local loaded = false
+        local detectLoad = zonePath.ChildAdded:Connect(function(child)
+            if child.Name == "INTERACT" then
+                loaded = true
+            end
+        end)
+
+        repeat
+            task.wait()
+        until loaded
+
+        detectLoad:Disconnect()
+    end
+
+    local dist = 999
+    local closestBreakZone = nil
+    for _, v in pairs(zonePath.INTERACT.BREAK_ZONES:GetChildren()) do
+        local magnitude = (LocalPlayer.Character.HumanoidRootPart.Position - v.Position).Magnitude
+        if magnitude <= dist then
+            dist = magnitude
+            closestBreakZone = v
+        end
+    end
+
+    LocalPlayer.Character.HumanoidRootPart.CFrame = closestBreakZone.CFrame + Vector3.new(0, 10, 0)
+
+    if maxZoneData.ZoneNumber >= getgenv().autoWorldConfig.ZONE_TO_REACH then
+        print("Reached selected zone")
+        unfinished = false
+    end
 end
 
 
+-- Function to extract numeric values from a string
+local function extractNumber(str)
+    return tonumber(str:match("%d+")) or math.huge  -- Return a large number if no digits are found
+end
+
+-- Step 1: Find the lowest number in mainEggs
+for _, child in ipairs(mainEggs:GetChildren()) do
+    for _, grandchild in ipairs(child:GetChildren()) do
+        if string.find(grandchild.Name, "EggLock") then
+            local eggNumber = extractNumber(child.Name)
+            if lowestNumberEgg == nil or eggNumber < lowestNumberEgg then
+                lowestNumberEgg = eggNumber
+            end
+            break  -- Stop checking once you find a match for this child
+        end
+    end
+end
+
+local function getEgg()
+    while true do
+        local eggData = require(game:GetService("ReplicatedStorage").Library.Util.EggsUtil).GetByNumber(lowestNumberEgg - 1)
+        if eggData then
+            print(eggData.name)
+            print(eggData.eggNumber)
+            return eggData
+        else
+            print("NO BEST EGG FOUND!")
+            break
+        end
+    end
+    return nil
+end
+
+
+local function autoHatchWithoutAnimation(eggData)
+    -- disable egg hatch animation
+    hookfunction(getsenv(game.Players.LocalPlayer.PlayerScripts.Scripts.Game["Egg Opening Frontend"]).PlayEggAnimation, function()
+        return
+    end)
+
+    -- auto hatch with delay
+    if (tick() - timeStart) >= fastestHatchTime then
+        timeStart = tick()
+        game:GetService("ReplicatedStorage").Network.Eggs_RequestPurchase:InvokeServer(eggData.name, hatchAmount)
+    end
+end
+
+
+local function teleportAndHatch()
+    -- Teleport to Egg
+    for _, v in pairs(game:GetService("Workspace").__THINGS.Eggs.Main:GetChildren()) do
+        if string.find(v.Name, tostring(eggData.eggNumber) .. " - ") then
+            eggCFrame = v.Tier.CFrame
+        end
+    end
+    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = eggCFrame  -- Teleport to egg
+
+    -- Hatch eggs
+    for i=1, 10 do
+        autoHatchWithoutAnimation(eggData)
+        task.wait(fastestHatchTime)
+    end
+
+    print("Done Hatching...")
+end
+
+
+for _, lootbag in pairs(Workspace.__THINGS:FindFirstChild("Lootbags"):GetChildren()) do
+    if lootbag then
+        ReplicatedStorage.Network:WaitForChild("Lootbags_Claim"):FireServer(unpack( { [1] = { [1] = lootbag.Name, }, } ))
+        lootbag:Destroy()
+        task.wait()
+    end
+end
+
+Workspace.__THINGS:FindFirstChild("Lootbags").ChildAdded:Connect(function(lootbag)
+    task.wait()
+    if lootbag then
+        ReplicatedStorage.Network:WaitForChild("Lootbags_Claim"):FireServer(unpack( { [1] = { [1] = lootbag.Name, }, } ))
+        lootbag:Destroy()
+    end
+end)
+
+Workspace.__THINGS:FindFirstChild("Orbs").ChildAdded:Connect(function(orb)
+    task.wait()
+    if orb then
+        ReplicatedStorage.Network:FindFirstChild("Orbs: Collect"):FireServer(unpack( { [1] = { [1] = tonumber(orb.Name), }, } ))
+        orb:Destroy()
+    end
+end)
+
+
+local nextRebirthData = require(game:GetService("ReplicatedStorage").Library.Client.RebirthCmds).GetNextRebirth()
+local rebirthNumber
+local rebirthZone
+local startAutoHatchEggDelay = tick()
+local autoHatchEggDelay = 60
+
+-- vvv Egg Hatching Variables vvv
+local eggData = getEgg()
+local eggCFrame
+-- ^^^ Egg Hatching Variables ^^^
+
+if nextRebirthData then
+    rebirthNumber = nextRebirthData.RebirthNumber
+    rebirthZone = nextRebirthData.ZoneNumberRequired
+end
+
+task.spawn(function()
+    print("Starting zone purchase service")
+    while unfinished do
+        local nextZoneName, nextZoneData = require(game:GetService("ReplicatedStorage").Library.Client.ZoneCmds).GetNextZone()
+        local success, _ = game:GetService("ReplicatedStorage").Network.Zones_RequestPurchase:InvokeServer(nextZoneName)
+        if success then
+            print("Successfully purchased " .. nextZoneName)
+            if getgenv().autoWorldConfig.AUTO_REBIRTH then
+                pcall(function()
+                    if nextZoneData.ZoneNumber >= rebirthZone then
+                        print("Rebirthing")
+                        game:GetService("ReplicatedStorage").Network.Rebirth_Request:InvokeServer(tostring(rebirthNumber))
+                        task.wait(15)
+                        nextRebirthData = require(game:GetService("ReplicatedStorage").Library.Client.RebirthCmds).GetNextRebirth()
+                        if nextRebirthData then
+                            rebirthNumber = nextRebirthData.RebirthNumber
+                            rebirthZone = nextRebirthData.ZoneNumberRequired
+                        end
+                    end
+                end)
+            end
+            teleportToMaxZone()
+            task.wait(30)
+            teleportAndHatch()
+            teleportToMaxZone()
+        end
+        if (tick() - startAutoHatchEggDelay) >= autoHatchEggDelay then
+            teleportAndHatch()
+            teleportToMaxZone()
+            startAutoHatchEggDelay = tick()
+        end
+        task.wait(getgenv().autoWorldConfig.PURCHASE_CHECK_DELAY)
+    end
+end)
+
+teleportToMaxZone()
