@@ -1,5 +1,5 @@
 loadstring(game:HttpGet("https://raw.githubusercontent.com/fdvll/pet-simulator-99/main/waitForGameLoad.lua"))()
-print("rebirth started.")
+print("rebirth started.12")
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local LocalPlayer = game:GetService("Players").LocalPlayer
@@ -90,20 +90,21 @@ local function extractNumber(str)
     return tonumber(str:match("%d+")) or math.huge  -- Return a large number if no digits are found
 end
 
--- Step 1: Find the lowest number in mainEggs
-for _, child in ipairs(mainEggs:GetChildren()) do
-    for _, grandchild in ipairs(child:GetChildren()) do
-        if string.find(grandchild.Name, "EggLock") then
-            local eggNumber = extractNumber(child.Name)
-            if lowestNumberEgg == nil or eggNumber < lowestNumberEgg then
-                lowestNumberEgg = eggNumber
-            end
-            break  -- Stop checking once you find a match for this child
-        end
-    end
-end
 
 local function getEgg()
+        -- Step 1: Find the lowest number in mainEggs
+    for _, child in ipairs(mainEggs:GetChildren()) do
+        for _, grandchild in ipairs(child:GetChildren()) do
+            if string.find(grandchild.Name, "EggLock") then
+                local eggNumber = extractNumber(child.Name)
+                if lowestNumberEgg == nil or eggNumber < lowestNumberEgg then
+                    lowestNumberEgg = eggNumber
+                end
+                break  -- Stop checking once you find a match for this child
+            end
+        end
+    end
+    
     while true do
         local eggData = require(game:GetService("ReplicatedStorage").Library.Util.EggsUtil).GetByNumber(lowestNumberEgg - 1)
         if eggData then
