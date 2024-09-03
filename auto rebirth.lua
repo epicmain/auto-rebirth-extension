@@ -1,5 +1,5 @@
 loadstring(game:HttpGet("https://raw.githubusercontent.com/fdvll/pet-simulator-99/main/waitForGameLoad.lua"))()
-print("rebirth started.")
+print("rebirth started fruit update.")
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local LocalPlayer = game:GetService("Players").LocalPlayer
@@ -25,6 +25,15 @@ local hatchAmount = require(game:GetService("ReplicatedStorage").Library.Client.
 local eggData
 local eggCFrame
 -- ^^^ Egg hatching variables ^^^
+
+-- vvv Fruit variables vvv
+local fruitCmds = require(game:GetService("ReplicatedStorage").Library.Client.FruitCmds)
+local inventoryFruit = require(game:GetService("ReplicatedStorage").Library.Client.Save).Get().Inventory.Fruit
+local emptyFruits = {}
+local fruitId = {}
+local uneatenFruits = {}
+-- ^^^ Fruit variables ^^^
+
 
 require(ReplicatedStorage.Library.Client.PlayerPet).CalculateSpeedMultiplier = function(...)
     return 200
@@ -154,6 +163,68 @@ local function teleportAndHatch()
 end
 
 
+local function removeValue(t, value)
+    for i, v in ipairs(t) do
+        if v == value then
+            table.remove(t, i)
+            break  -- Exit the loop after removing the value
+        end
+    end
+end
+
+
+local function checkFruitEmpty(key)
+    for _, name in pairs(emptyFruits) do 
+        if name == key then
+            return true
+        end
+    end
+end
+
+
+local function checkAndEatFruits()
+    -- update encrypted fruitId
+    for key, value in pairs(inventoryFruit) do
+        fruitId[value["id"]] = key
+        print(value["id"], key)
+    end
+
+    -- check if 0 fruit
+    for fruitId, value in pairs(inventoryFruit) do
+        local length = 0
+        for _ in pairs(value) do
+            length = length + 1
+        end
+        if length == 1 then
+            -- value["id"] is name of fruit
+            table.insert(emptyFruits, value["id"])
+        end
+    end
+
+    uneatenFruits = {"Orange", "Pineapple", "Apple", "Banana", "Rainbow", "Watermelon"}
+    for fruitName, value in pairs(fruitCmds.GetActiveFruits()) do 
+        removeValue(uneatenFruits, fruitName)
+        if #value["Normal"] < fruitCmds.ComputeFruitQueueLimit() then  -- if current fruit queue not max, eat
+            -- check if fruit is available
+            if checkFruitEmpty(fruitName) ~= true then
+                fruitCmds.Consume(fruitId[fruitName])
+                task.wait(1.5)
+            end
+        end
+    end
+
+    -- Eat any fruits that are not in queue
+    for _, fruitName in pairs(uneatenFruits) do
+        if checkFruitEmpty(fruitName) ~= true then
+            fruitCmds.Consume(fruitId[fruitName])
+            print("fruitid: ",fruitId[fruitName])
+            task.wait(1.5)
+        end
+    end
+    print('Done eating fruits...')
+end
+
+
 for _, lootbag in pairs(Workspace.__THINGS:FindFirstChild("Lootbags"):GetChildren()) do
     if lootbag then
         ReplicatedStorage.Network:WaitForChild("Lootbags_Claim"):FireServer(unpack( { [1] = { [1] = lootbag.Name, }, } ))
@@ -225,6 +296,7 @@ task.spawn(function()
             teleportToMaxZone()
             startAutoHatchEggDelay = tick()
         end
+        checkAndEatFruits()
         task.wait(getgenv().autoWorldConfig.PURCHASE_CHECK_DELAY)
     end
 end)
