@@ -1,6 +1,6 @@
 loadstring(game:HttpGet("https://raw.githubusercontent.com/fdvll/pet-simulator-99/main/waitForGameLoad.lua"))()
 
-print("STARTED MONG REBIRTH3")
+print("Starting mong 1")
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local LocalPlayer = game:GetService("Players").LocalPlayer
@@ -23,6 +23,8 @@ local lowestNumberEgg = nil
 local timeStart = tick()
 local fastestHatchTime = getsenv(game:GetService("Players").LocalPlayer.PlayerScripts.Scripts.Game["Egg Opening Frontend"]).computeSpeedMult() * 2
 local hatchAmount = require(game:GetService("ReplicatedStorage").Library.Client.EggCmds).GetMaxHatch()
+local eggData
+local eggCFrame
 -- ^^^ Egg hatching variables ^^^
 
 require(ReplicatedStorage.Library.Client.PlayerPet).CalculateSpeedMultiplier = function(...)
@@ -130,6 +132,7 @@ end
 
 
 local function teleportAndHatch()
+    eggData = getEgg()
     -- Teleport to Egg
     for _, v in pairs(game:GetService("Workspace").__THINGS.Eggs.Main:GetChildren()) do
         if string.find(v.Name, tostring(eggData.eggNumber) .. " - ") then
@@ -178,11 +181,6 @@ local rebirthNumber
 local rebirthZone
 local startAutoHatchEggDelay = tick()
 local autoHatchEggDelay = 60
-
--- vvv Egg Hatching Variables vvv
-local eggData = getEgg()
-local eggCFrame
--- ^^^ Egg Hatching Variables ^^^
 
 if nextRebirthData then
     rebirthNumber = nextRebirthData.RebirthNumber
