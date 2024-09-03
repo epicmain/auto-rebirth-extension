@@ -1,6 +1,5 @@
 loadstring(game:HttpGet("https://raw.githubusercontent.com/fdvll/pet-simulator-99/main/waitForGameLoad.lua"))()
-
-print("Starting mong 1")
+print("rebirth started.")
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local LocalPlayer = game:GetService("Players").LocalPlayer
@@ -136,7 +135,7 @@ local function teleportAndHatch()
     -- Teleport to Egg
     for _, v in pairs(game:GetService("Workspace").__THINGS.Eggs.Main:GetChildren()) do
         if string.find(v.Name, tostring(eggData.eggNumber) .. " - ") then
-            eggCFrame = v.Tier.CFrame
+            eggCFrame = v.Tier.CFrame + Vector3.new(0, 10, 0)
         end
     end
     game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = eggCFrame  -- Teleport to egg
