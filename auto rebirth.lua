@@ -1,5 +1,5 @@
 loadstring(game:HttpGet("https://raw.githubusercontent.com/fdvll/pet-simulator-99/main/waitForGameLoad.lua"))()
-print("rebirth started.12")
+print("rebirth started333.")
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local LocalPlayer = game:GetService("Players").LocalPlayer
@@ -92,7 +92,7 @@ end
 
 
 local function getEgg()
-        -- Step 1: Find the lowest number in mainEggs
+    -- Step 1: Find the lowest number in mainEggs
     for _, child in ipairs(mainEggs:GetChildren()) do
         for _, grandchild in ipairs(child:GetChildren()) do
             if string.find(grandchild.Name, "EggLock") then
@@ -100,7 +100,6 @@ local function getEgg()
                 if lowestNumberEgg == nil or eggNumber < lowestNumberEgg then
                     lowestNumberEgg = eggNumber
                 end
-                break  -- Stop checking once you find a match for this child
             end
         end
     end
@@ -217,6 +216,7 @@ task.spawn(function()
             teleportAndHatch()
             print("Teleporting To Max Zone After Hatching.")
             teleportToMaxZone()
+            startAutoHatchEggDelay = tick()
         end
         if (tick() - startAutoHatchEggDelay) >= autoHatchEggDelay then
             teleportAndHatch()
