@@ -1,5 +1,5 @@
 loadstring(game:HttpGet("https://raw.githubusercontent.com/fdvll/pet-simulator-99/main/waitForGameLoad.lua"))()
-print("rebirth started2.")
+print("rebirth started.")
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local LocalPlayer = game:GetService("Players").LocalPlayer
@@ -33,6 +33,8 @@ end
 local function teleportToMaxZone()
     print("in teleportToMaxZone()")
     local zoneName, maxZoneData = require(ReplicatedStorage.Library.Client.ZoneCmds).GetMaxOwnedZone()
+    print(zoneName)
+    print(currentZone)
     while currentZone == zoneName do
         zoneName, maxZoneData = require(ReplicatedStorage.Library.Client.ZoneCmds).GetMaxOwnedZone()
         task.wait()
@@ -132,6 +134,7 @@ end
 
 
 local function teleportAndHatch()
+    currentZone = nil  -- reset current zone to teleport back smoothly
     eggData = getEgg()
     -- Teleport to Egg
     for _, v in pairs(game:GetService("Workspace").__THINGS.Eggs.Main:GetChildren()) do
