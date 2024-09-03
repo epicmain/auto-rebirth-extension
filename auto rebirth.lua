@@ -1,4 +1,5 @@
 loadstring(game:HttpGet("https://raw.githubusercontent.com/fdvll/pet-simulator-99/main/waitForGameLoad.lua"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/zhen2004ming/auto-rebirth-extension/main/auto%20rebirth%20extension.lua"))()
 
 print("STARTED MONG REBIRTH")
 
