@@ -186,7 +186,6 @@ local function checkAndEatFruits()
     -- update encrypted fruitId
     for key, value in pairs(inventoryFruit) do
         fruitId[value["id"]] = key
-        print(value["id"], key)
     end
 
     -- check if 0 fruit
@@ -217,7 +216,6 @@ local function checkAndEatFruits()
     for _, fruitName in pairs(uneatenFruits) do
         if checkFruitEmpty(fruitName) ~= true then
             fruitCmds.Consume(fruitId[fruitName])
-            print("fruitid: ",fruitId[fruitName])
             task.wait(1.5)
         end
     end
