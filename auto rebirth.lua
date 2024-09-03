@@ -31,6 +31,7 @@ require(ReplicatedStorage.Library.Client.PlayerPet).CalculateSpeedMultiplier = f
 end
 
 local function teleportToMaxZone()
+    print("in teleportToMaxZone()")
     local zoneName, maxZoneData = require(ReplicatedStorage.Library.Client.ZoneCmds).GetMaxOwnedZone()
     while currentZone == zoneName do
         zoneName, maxZoneData = require(ReplicatedStorage.Library.Client.ZoneCmds).GetMaxOwnedZone()
@@ -210,10 +211,12 @@ task.spawn(function()
             teleportToMaxZone()
             task.wait(30)
             teleportAndHatch()
+            print("Teleporting To Max Zone After Hatching.")
             teleportToMaxZone()
         end
         if (tick() - startAutoHatchEggDelay) >= autoHatchEggDelay then
             teleportAndHatch()
+            print("Teleporting To Max Zone After Hatching.")
             teleportToMaxZone()
             startAutoHatchEggDelay = tick()
         end
