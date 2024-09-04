@@ -1,5 +1,5 @@
 loadstring(game:HttpGet("https://raw.githubusercontent.com/fdvll/pet-simulator-99/main/waitForGameLoad.lua"))()
-print("update collect free gifts.")
+print("rebirth started.")
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local LocalPlayer = game:GetService("Players").LocalPlayer
@@ -116,17 +116,7 @@ end
 
 
 local function getEgg()
-    -- Step 1: Find the lowest number in mainEggs
-    for _, child in ipairs(mainEggs:GetChildren()) do
-        for _, grandchild in ipairs(child:GetChildren()) do
-            if string.find(grandchild.Name, "EggLock") then
-                local eggNumber = extractNumber(child.Name)
-                if lowestNumberEgg == nil or eggNumber < lowestNumberEgg then
-                    lowestNumberEgg = eggNumber
-                end
-            end
-        end
-    end
+    lowestNumberEgg = require(game:GetService("ReplicatedStorage").Library.Client.Save).Get().MaximumAvailableEgg
     
     while true do
         local eggData = require(game:GetService("ReplicatedStorage").Library.Util.EggsUtil).GetByNumber(lowestNumberEgg - 1)
@@ -222,7 +212,7 @@ local function checkAndEatFruits()
             -- check if fruit is available
             if checkFruitEmpty(fruitName) ~= true then
                 fruitCmds.Consume(fruitId[fruitName])
-                task.wait(1.5)
+                task.wait(1)
             end
         end
     end
@@ -231,7 +221,7 @@ local function checkAndEatFruits()
     for _, fruitName in pairs(uneatenFruits) do
         if checkFruitEmpty(fruitName) ~= true then
             fruitCmds.Consume(fruitId[fruitName])
-            task.wait(1.5)
+            task.wait(1)
         end
     end
     print('Done eating fruits...')
@@ -243,13 +233,13 @@ local function checkAndRedeemGift()
         if clientSave.FreeGiftsTime >= seconds then
             print("Redeeming Gift ", giftIndex)
             game:GetService("ReplicatedStorage"):WaitForChild("Network"):WaitForChild("Redeem Free Gift"):InvokeServer(giftIndex)
+            task.wait(2) -- wait to collect gifts properly
         else
             break
         end
     end
 
     for i, _ in pairs(clientSave.FreeGiftsRedeemed) do
-        print("Gift ", clientSave.FreeGiftsRedeemed[i], " removed.")
         if giftTiming[clientSave.FreeGiftsRedeemed[i]] ~= nil then
             giftTiming[clientSave.FreeGiftsRedeemed[i]] = nil
         end
@@ -281,12 +271,15 @@ Workspace.__THINGS:FindFirstChild("Orbs").ChildAdded:Connect(function(orb)
     end
 end)
 
+game:GetService("ReplicatedStorage"):WaitForChild("Network"):WaitForChild("ForeverPacks: Claim Free"):InvokeServer("Default")  -- collect free foreverpack
+
+
 
 local nextRebirthData = require(game:GetService("ReplicatedStorage").Library.Client.RebirthCmds).GetNextRebirth()
 local rebirthNumber
 local rebirthZone
 local startAutoHatchEggDelay = tick()
-local autoHatchEggDelay = 60
+local autoHatchEggDelay = 300
 
 if nextRebirthData then
     rebirthNumber = nextRebirthData.RebirthNumber
