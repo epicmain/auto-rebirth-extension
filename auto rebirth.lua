@@ -1,5 +1,5 @@
 loadstring(game:HttpGet("https://raw.githubusercontent.com/fdvll/pet-simulator-99/main/waitForGameLoad.lua"))()
-print("rebirth started fruit update.")
+print("update collect free gifts.")
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local LocalPlayer = game:GetService("Players").LocalPlayer
@@ -13,6 +13,7 @@ elseif PlaceId == 16498369169 then
     map = Workspace.Map2
 end
 
+local clientSave = require(game:GetService("ReplicatedStorage").Library.Client.Save).Get()
 local unfinished = true
 local currentZone
 
@@ -28,12 +29,26 @@ local eggCFrame
 
 -- vvv Fruit variables vvv
 local fruitCmds = require(game:GetService("ReplicatedStorage").Library.Client.FruitCmds)
-local inventoryFruit = require(game:GetService("ReplicatedStorage").Library.Client.Save).Get().Inventory.Fruit
+local inventoryFruit = clientSave.Inventory.Fruit
 local emptyFruits = {}
 local fruitId = {}
 local uneatenFruits = {}
 -- ^^^ Fruit variables ^^^
 
+local giftTiming = {
+    [1] = 300,
+    [2] = 600,
+    [3] = 900,
+    [4] = 1200,
+    [5] = 1800,
+    [6] = 2400,
+    [7] = 3000,
+    [8] = 3600,
+    [9] = 4500,
+    [10] = 5400,
+    [11] = 7200,
+    [12] = 10800
+}
 
 require(ReplicatedStorage.Library.Client.PlayerPet).CalculateSpeedMultiplier = function(...)
     return 200
@@ -223,6 +238,25 @@ local function checkAndEatFruits()
 end
 
 
+local function checkAndRedeemGift()
+    for giftIndex, seconds in pairs(giftTiming) do
+        if clientSave.FreeGiftsTime >= seconds then
+            print("Redeeming Gift ", giftIndex)
+            game:GetService("ReplicatedStorage"):WaitForChild("Network"):WaitForChild("Redeem Free Gift"):InvokeServer(giftIndex)
+        else
+            break
+        end
+    end
+
+    for i, _ in pairs(clientSave.FreeGiftsRedeemed) do
+        print("Gift ", clientSave.FreeGiftsRedeemed[i], " removed.")
+        if giftTiming[clientSave.FreeGiftsRedeemed[i]] ~= nil then
+            giftTiming[clientSave.FreeGiftsRedeemed[i]] = nil
+        end
+    end
+end
+
+
 for _, lootbag in pairs(Workspace.__THINGS:FindFirstChild("Lootbags"):GetChildren()) do
     if lootbag then
         ReplicatedStorage.Network:WaitForChild("Lootbags_Claim"):FireServer(unpack( { [1] = { [1] = lootbag.Name, }, } ))
@@ -295,6 +329,7 @@ task.spawn(function()
             startAutoHatchEggDelay = tick()
         end
         checkAndEatFruits()
+        checkAndRedeemGift()
         task.wait(getgenv().autoWorldConfig.PURCHASE_CHECK_DELAY)
     end
 end)
