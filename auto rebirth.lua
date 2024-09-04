@@ -1,5 +1,5 @@
 loadstring(game:HttpGet("https://raw.githubusercontent.com/fdvll/pet-simulator-99/main/waitForGameLoad.lua"))()
-print("rebirth started1.")
+print("rebirth started111.")
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local LocalPlayer = game:GetService("Players").LocalPlayer
@@ -19,12 +19,13 @@ local currentZone
 
 -- vvv Egg hatching variables vvv
 local mainEggs = game:GetService("Workspace")["__THINGS"].Eggs.Main
-local lowestNumberEgg = nil
+local bestEgg = nil
 local timeStart = tick()
 local fastestHatchTime = getsenv(game:GetService("Players").LocalPlayer.PlayerScripts.Scripts.Game["Egg Opening Frontend"]).computeSpeedMult() * 2
-local hatchAmount = require(game:GetService("ReplicatedStorage").Library.Client.EggCmds).GetMaxHatch()
+local maxHatch = require(game:GetService("ReplicatedStorage").Library.Client.EggCmds).GetMaxHatch()
 local eggData
 local eggCFrame
+local maxHatchAmount = 5
 -- ^^^ Egg hatching variables ^^^
 
 -- vvv Fruit variables vvv
@@ -116,10 +117,10 @@ end
 
 
 local function getEgg()
-    lowestNumberEgg = require(game:GetService("ReplicatedStorage").Library.Client.Save).Get().MaximumAvailableEgg
+    bestEgg = require(game:GetService("ReplicatedStorage").Library.Client.Save).Get().MaximumAvailableEgg
     
     while true do
-        local eggData = require(game:GetService("ReplicatedStorage").Library.Util.EggsUtil).GetByNumber(lowestNumberEgg - 1)
+        local eggData = require(game:GetService("ReplicatedStorage").Library.Util.EggsUtil).GetByNumber(bestEgg)
         if eggData then
             print(eggData.name)
             print(eggData.eggNumber)
@@ -142,7 +143,11 @@ local function autoHatchWithoutAnimation(eggData)
     -- auto hatch with delay
     if (tick() - timeStart) >= fastestHatchTime then
         timeStart = tick()
-        game:GetService("ReplicatedStorage").Network.Eggs_RequestPurchase:InvokeServer(eggData.name, hatchAmount)
+        if hatchAmount <= maxHatchAmount then
+            game:GetService("ReplicatedStorage").Network.Eggs_RequestPurchase:InvokeServer(eggData.name, hatchAmount)
+        else
+            game:GetService("ReplicatedStorage").Network.Eggs_RequestPurchase:InvokeServer(eggData.name, maxHatchAmount)
+        end
     end
 end
 
@@ -279,7 +284,7 @@ local nextRebirthData = require(game:GetService("ReplicatedStorage").Library.Cli
 local rebirthNumber
 local rebirthZone
 local startAutoHatchEggDelay = tick()
-local autoHatchEggDelay = 180
+local autoHatchEggDelay = 120
 
 if nextRebirthData then
     rebirthNumber = nextRebirthData.RebirthNumber
@@ -292,7 +297,6 @@ task.spawn(function()
         local nextZoneName, nextZoneData = require(game:GetService("ReplicatedStorage").Library.Client.ZoneCmds).GetNextZone()
         local success, _ = game:GetService("ReplicatedStorage").Network.Zones_RequestPurchase:InvokeServer(nextZoneName)
         if success then
-            lowestNumberEgg = nil
             print("Successfully purchased " .. nextZoneName)
             if getgenv().autoWorldConfig.AUTO_REBIRTH then
                 pcall(function()
