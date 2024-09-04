@@ -1,5 +1,5 @@
 loadstring(game:HttpGet("https://raw.githubusercontent.com/fdvll/pet-simulator-99/main/waitForGameLoad.lua"))()
-print("rebirth started.")
+print("rebirth started1.")
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local LocalPlayer = game:GetService("Players").LocalPlayer
@@ -308,10 +308,6 @@ task.spawn(function()
                     end
                 end)
             end
-            teleportToMaxZone()
-            task.wait(30)
-            teleportAndHatch()
-            print("Teleporting To Max Zone After Hatching.")
             teleportToMaxZone()
             startAutoHatchEggDelay = tick()
         end
