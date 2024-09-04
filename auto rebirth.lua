@@ -279,7 +279,7 @@ local nextRebirthData = require(game:GetService("ReplicatedStorage").Library.Cli
 local rebirthNumber
 local rebirthZone
 local startAutoHatchEggDelay = tick()
-local autoHatchEggDelay = 300
+local autoHatchEggDelay = 180
 
 if nextRebirthData then
     rebirthNumber = nextRebirthData.RebirthNumber
