@@ -1,5 +1,5 @@
 loadstring(game:HttpGet("https://raw.githubusercontent.com/fdvll/pet-simulator-99/main/waitForGameLoad.lua"))()
-print("rebirth started.11")
+print("rebirth started101.")
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Library = ReplicatedStorage:WaitForChild("Library")
@@ -671,9 +671,10 @@ end
 local function checkAndUseFruits()
     for fruitId, tbl in pairs(fruitInventory) do
         task.wait(0.5)
-        if tbl.id ~= "Rainbow" then
+        if fruitCmds.GetActiveFruits()[tbl.id] ~= nil then
             if (#fruitCmds.GetActiveFruits()[tbl.id]["Normal"] < maxFruitQueue) and (tbl._am ~= nil) then
                 print("Continue consuming ", tbl.id)
+                print(tbl.id, ": ", fruitId)
                 if tbl._am < fruitCmds.GetMaxConsume(fruitId) then
                     fruitCmds.Consume(fruitId, tonumber(tbl._am))
                 else
@@ -681,11 +682,7 @@ local function checkAndUseFruits()
                 end
             end
         else
-            if tbl._am < fruitCmds.GetMaxConsume(fruitId) then
-                fruitCmds.Consume(fruitId, tonumber(tbl._am))
-            else
-                fruitCmds.Consume(fruitId, fruitCmds.GetMaxConsume(fruitId))
-            end
+            fruitCmds.Consume(fruitId)
         end
     end
 end
