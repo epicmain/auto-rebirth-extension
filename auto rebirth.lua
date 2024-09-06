@@ -1,5 +1,5 @@
 loadstring(game:HttpGet("https://raw.githubusercontent.com/fdvll/pet-simulator-99/main/waitForGameLoad.lua"))()
-print("rebirth started11111.")
+print("rebirth startedxx.")
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Library = ReplicatedStorage:WaitForChild("Library")
@@ -36,7 +36,7 @@ local autoHatchEggDelay = 120
 local bestEgg = nil
 local timeStart = tick()
 local fastestHatchTime = getsenv(game:GetService("Players").LocalPlayer.PlayerScripts.Scripts.Game["Egg Opening Frontend"]).computeSpeedMult() * 2
-local maxHatch = require(Client.EggCmds).GetMaxHatch()
+local currentMaxHatch = require(Client.EggCmds).GetMaxHatch()
 local eggData
 local eggCFrame
 local maxHatchAmount = 5
@@ -635,8 +635,8 @@ local function autoHatchWithoutAnimation(eggData)
     -- auto hatch with delay
     if (tick() - timeStart) >= fastestHatchTime then
         timeStart = tick()
-        if hatchAmount <= maxHatchAmount then
-            ReplicatedStorage.Network.Eggs_RequestPurchase:InvokeServer(eggData.name, hatchAmount)
+        if currentMaxHatch <= maxHatchAmount then
+            ReplicatedStorage.Network.Eggs_RequestPurchase:InvokeServer(eggData.name, currentMaxHatch)
         else
             ReplicatedStorage.Network.Eggs_RequestPurchase:InvokeServer(eggData.name, maxHatchAmount)
         end
