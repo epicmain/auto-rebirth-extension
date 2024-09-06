@@ -1,5 +1,5 @@
 loadstring(game:HttpGet("https://raw.githubusercontent.com/fdvll/pet-simulator-99/main/waitForGameLoad.lua"))()
-print("rebirth started121.")
+print("rebirth started123.")
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Library = ReplicatedStorage:WaitForChild("Library")
@@ -250,6 +250,48 @@ local petSlotDiamondCost = {
     [79] = 1900000,
     [80] = 1950000
 }
+
+
+local upgrades = {
+    {"Walkspeed", 2, "Colorful Forest", 30},
+    {"Magnet", 3, "Castle", 100},
+    {"Diamonds", 4, "Green Forest", 200},
+    {"Walkspeed", 6, "Cherry Blossom", 150},
+    {"Tap Damage", 8, "Backyard", 300},
+    {"Diamonds", 10, "Mine", 400},
+    {"Pet Speed", 12, "Dead Forest", 500},
+    {"Magnet", 14, "Mushroom Field", 800},
+    {"Drops", 16, "Crimson Forest", 650},
+    {"Pet Damage", 18, "Jungle Temple", 700},
+    {"Diamonds", 20, "Beach", 900},
+    {"Luck", 22, "Shipwreck", 1000},
+    {"Magnet", 24, "Palm Beach", 2000},
+    {"Coins", 26, "Pirate Cove", 1250},
+    {"Tap Damage", 28, "Shanty Town", 1500},
+    {"Pet Speed", 30, "Fossil Digsite", 1250},
+    {"Diamonds", 33, "Wild West", 2000},
+    {"Pet Damage", 36, "Mountains", 2500},
+    {"Coins", 40, "Ski Town", 2750},
+    {"Drops", 44, "Obsidian Cave", 3000},
+    {"Magnet", 47, "Underworld Bridge", 4000},
+    {"Luck", 49, "Metal Dojo", 4500},
+    {"Pet Damage", 51, "Samurai Village", 7500},
+    {"Tap Damage", 53, "Zen Garden", 8000},
+    {"Pet Speed", 56, "Fairytale Castle", 5500},
+    {"Luck", 58, "Fairy Castle", 7500},
+    {"Coins", 60, "Rainbow River", 7500},
+    {"Magnet", 63, "Frost Mountains", 6000},
+    {"Diamonds", 66, "Ice Castle", 12000},
+    {"Drops", 68, "Firefly Cold Forest", 15000},
+    {"Tap Damage", 74, "Witch Marsh", 17500},
+    {"Luck", 77, "Haunted Mansion", 25000},
+    {"Magnet", 80, "Treasure Dungeon", 35000},
+    {"Coins", 84, "Gummy Forest", 45000},
+    {"Pet Speed", 88, "Carnival", 60000},
+    {"Pet Damage", 93, "Cloud Houses", 75000},
+    {"Diamonds", 98, "Colorful Clouds", 100000}
+}
+
 
 
 local function len(table)
