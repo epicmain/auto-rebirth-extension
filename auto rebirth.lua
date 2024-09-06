@@ -1,5 +1,5 @@
 loadstring(game:HttpGet("https://raw.githubusercontent.com/fdvll/pet-simulator-99/main/waitForGameLoad.lua"))()
-print("rebirth started.")
+print("rebirth started11111.")
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Library = ReplicatedStorage:WaitForChild("Library")
@@ -513,12 +513,11 @@ local function checkAndEquipBestSpecifiedEnchants()
     findBestEnchantTier()
     if (tick() - enchantEquipTimeStart) >= equipEnchantDelay then 
         for enchantSlotNumber, enchantName in pairs(enchants) do
-            print(enchantSlotNumber)
             task.wait(0.1)
-            if enchantSlotNumber <= clientSave.MaxEnchantsEquipped then
+            if enchantSlotNumber <= clientSaveGet.MaxEnchantsEquipped then
                 local redo = true
                 -- 1. Check if equipped with best tier, 2. if not equipped, try to equip
-                if clientSave.EquippedEnchants[tostring(enchantSlotNumber)] == bestEnchants[enchantName]["id"] then  -- EquippedEnchants[string number]
+                if clientSaveGet.EquippedEnchants[tostring(enchantSlotNumber)] == bestEnchants[enchantName]["id"] then  -- EquippedEnchants[string number]
                     print("Best enchant: ", enchantName, " already equipped.")
                 else
                     print("No best enchant found for slot ", enchantSlotNumber)
@@ -526,7 +525,7 @@ local function checkAndEquipBestSpecifiedEnchants()
                     task.wait(1)
                     enchantCmds.Equip(bestEnchants[enchantName]["id"])
                     task.wait(1)
-                    if clientSave.EquippedEnchants[tostring(enchantSlotNumber)] == bestEnchants[enchantName]["id"] then
+                    if clientSaveGet.EquippedEnchants[tostring(enchantSlotNumber)] == bestEnchants[enchantName]["id"] then
                         print("Empty slot equipped ", enchantName)
                     else
                         local secondaryBestEnchantTier = bestEnchants[enchantName]["tier"]
