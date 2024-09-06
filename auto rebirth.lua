@@ -75,7 +75,7 @@ local unconsumedPotions -- Diamonds, Treasure Hunter, Damage, Lucky, Coins ... W
 -- vvv Enchant variables vvv
 local enchantCmds = require(Client.EnchantCmds)
 local enchantEquipTimeStart = tick()
-local equipEnchantDelay = 60
+local equipEnchantDelay = 0
 local enchantIdToName
 local enchants = {
     [1] = "Tap Power", 
@@ -502,7 +502,6 @@ local function findBestEnchantTier()
         tbl.id == "Lucky Eggs" or tbl.id == "Strong Pets" or tbl.id == "Treasure Hunter" then
             if bestEnchants[tbl.id]["tier"] < tbl.tn then
                 bestEnchants[tbl.id]["tier"] = tbl.tn
-                bestEnchants[tbl.id]["amount"] = tbl._am
                 bestEnchants[tbl.id]["id"] = enchantId
             end
         end
@@ -514,6 +513,7 @@ local function checkAndEquipBestSpecifiedEnchants()
     findBestEnchantTier()
     if (tick() - enchantEquipTimeStart) >= equipEnchantDelay then 
         for enchantSlotNumber, enchantName in pairs(enchants) do
+            print(enchantSlotNumber)
             task.wait(0.1)
             if enchantSlotNumber <= clientSave.MaxEnchantsEquipped then
                 local redo = true
@@ -561,6 +561,7 @@ local function checkAndEquipBestSpecifiedEnchants()
 end
 
 
+-- update upgrades to only purchase if pet/egg slots are max/specific max
 local function checkAndPurchaseUpgrades()
     local zonePath
     local zoneName, zoneData = zoneCmds.GetMaxOwnedZone()
