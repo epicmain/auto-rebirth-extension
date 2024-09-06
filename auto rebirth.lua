@@ -1,5 +1,5 @@
 loadstring(game:HttpGet("https://raw.githubusercontent.com/fdvll/pet-simulator-99/main/waitForGameLoad.lua"))()
-print("rebirth started101.")
+print("rebirth started121.")
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Library = ReplicatedStorage:WaitForChild("Library")
@@ -705,6 +705,7 @@ end
 
 
 local function checkAndConsumePotions()
+    findUnconsumedPotions()
     for i, potionName in ipairs(unconsumedPotions) do
         highestTierPotion = 0  -- reset tier for other potions
         highestTierPotionId = nil
