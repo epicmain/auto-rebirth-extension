@@ -1,7 +1,9 @@
 loadstring(game:HttpGet("https://raw.githubusercontent.com/fdvll/pet-simulator-99/main/waitForGameLoad.lua"))()
-print("rebirth started1211.")
+print("rebirth started.")
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Library = ReplicatedStorage:WaitForChild("Library")
+local Client = Library.Client
 local LocalPlayer = game:GetService("Players").LocalPlayer
 local Workspace = game:GetService("Workspace")
 
@@ -13,28 +15,91 @@ elseif PlaceId == 16498369169 then
     map = Workspace.Map2
 end
 
-local clientSave = require(game:GetService("ReplicatedStorage").Library.Client.Save).Get()
+local rankCmds = require(Client.RankCmds)
+local currencyCmds = require(Client.CurrencyCmds)
+local zoneCmds = require(Client.ZoneCmds)
+local clientSaveGet = require(Client.Save).Get()
+local inventory = clientSaveGet.Inventory
 local unfinished = true
 local currentZone
+local rebirthCmds = require(Client.RebirthCmds)
+local nextRebirthData = rebirthCmds.GetNextRebirth()
+local rebirthNumber
+local rebirthZone
+local originalPosition
+
+local startAutoHatchEggDelay = tick()
+local autoHatchEggDelay = 120
+
 
 -- vvv Egg hatching variables vvv
-local mainEggs = game:GetService("Workspace")["__THINGS"].Eggs.Main
 local bestEgg = nil
 local timeStart = tick()
 local fastestHatchTime = getsenv(game:GetService("Players").LocalPlayer.PlayerScripts.Scripts.Game["Egg Opening Frontend"]).computeSpeedMult() * 2
-local maxHatch = require(game:GetService("ReplicatedStorage").Library.Client.EggCmds).GetMaxHatch()
+local maxHatch = require(Client.EggCmds).GetMaxHatch()
 local eggData
 local eggCFrame
 local maxHatchAmount = 5
 -- ^^^ Egg hatching variables ^^^
 
+--- vvv EggSlot variables vvv
+local currentEggSlots
+local currentmaxPurchaseableEggs = rankCmds.GetMaxPurchasableEggSlots()
+local eggSlotTimeStart = tick()
+local checkEggSlotDelay = 5 -- time it will wait before checking your gem count again
+local MAX_EGG_SLOTS = 10
+-- ^^^ EggSlot variables ^^^
+
+--- vvv Pet slot variables vvv
+local currentEquipSlots
+local currentmaxPurchaseableEquips = rankCmds.GetMaxPurchasableEquipSlots()
+local checkPetSlotDelay = 5
+local petEquipSlotTimeStart = tick()
+local MAX_PET_SLOTS = 20
+--- ^^^ Pet slot variables ^^^
+
 -- vvv Fruit variables vvv
-local fruitCmds = require(game:GetService("ReplicatedStorage").Library.Client.FruitCmds)
-local inventoryFruit = clientSave.Inventory.Fruit
-local emptyFruits = {}
-local fruitId = {}
-local uneatenFruits = {}
+local fruitInventory = clientSaveGet.Inventory.Fruit -- id and _am
+local fruitCmds = require(Client.FruitCmds)
+local maxFruitQueue = fruitCmds.ComputeFruitQueueLimit()
+-- local activeFruits = require(Client.FruitCmds).GetActiveFruits() -- returns nested table active fruits .Normal .Shiny
 -- ^^^ Fruit variables ^^^
+
+-- vvv Auto potions variables vvv
+local potionCmds = require(Client.PotionCmds)
+local highestTierPotion = 0
+local highestTierPotionId = nil
+local unconsumedPotions -- Diamonds, Treasure Hunter, Damage, Lucky, Coins ... Walkspeed is useless
+-- ^^^ Auto potions variables ^^^
+
+-- vvv Enchant variables vvv
+local enchantCmds = require(Client.EnchantCmds)
+local equipEnchantDelay = 60
+local enchantIdToName
+local enchants = {
+    [1] = "Tap Power", 
+    [2] = "Coins", 
+    [3] = "Tap Power", 
+    [4] = "Coins", 
+    [5] = "Treasure Hunter"
+}
+local bestEnchants = {
+    ["Coins"] = {["tier"] = 0, ["id"] = ""},
+    ["Tap Power"] = {["tier"] = 0, ["id"] = ""},
+    ["Criticals"] = {["tier"] = 0, ["id"] = ""},
+    ["Diamonds"] = {["tier"] = 0, ["id"] = ""},
+    ["Lucky Eggs"] = {["tier"] = 0, ["id"] = ""},
+    ["Strong Pets"] = {["tier"] = 0, ["id"] = ""},
+    ["Treasure Hunter"] = {["tier"] = 0, ["id"] = ""}
+}
+-- ^^^ Enchant variables ^^^
+
+-- vvv Upgrades variables vvv
+local upgradeCmds = require(game:GetService("ReplicatedStorage").Library.Client.UpgradeCmds)
+-- ^^^ Upgrades variables ^^^
+
+local buffCmds = require(Client.BuffCmds)
+
 
 local giftTiming = {
     [1] = 300,
@@ -51,17 +116,157 @@ local giftTiming = {
     [12] = 10800
 }
 
-require(ReplicatedStorage.Library.Client.PlayerPet).CalculateSpeedMultiplier = function(...)
-    return 200
+
+local eggSlotDiamondCost = {
+    [1] = 150,
+    [2] = 300,
+    [3] = 600,
+    [4] = 900,
+    [5] = 1350,
+    [6] = 1800,
+    [7] = 2400,
+    [8] = 3000,
+    [9] = 3600,
+    [10] = 4200,
+    [12] = 10600,
+    [14] = 13600,
+    [16] = 16600,
+    [18] = 20100,
+    [20] = 23700,
+    [22] = 27300,
+    [24] = 30900,
+    [26] = 34500,
+    [28] = 38500,
+    [30] = 42700,
+    [33] = 72000,
+    [34] = 26100,
+    [37] = 85500,
+    [40] = 96300,
+    [43] = 107000,
+    [46] = 117000,
+    [49] = 128000,
+    [52] = 750000,
+    [55] = 1200000,
+    [58] = 1650000,
+    [61] = 2100000,
+    [64] = 2550000,
+    [67] = 3000000,
+    [68] = 1100000,
+    [69] = 1150000,
+    [70] = 1200000,
+    [71] = 1250000,
+    [72] = 1250000,
+    [73] = 1300000,
+    [74] = 1350000,
+    [75] = 1400000,
+    [76] = 1450000,
+    [77] = 1500000,
+    [78] = 1550000,
+    [79] = 1600000,
+    [80] = 1650000
+}
+
+
+local petSlotDiamondCost = {
+    [1] = 250,
+    [2] = 500,
+    [3] = 750,
+    [4] = 1000,
+    [5] = 1250,
+    [6] = 1500,
+    [7] = 1750,
+    [8] = 2000,
+    [9] = 2250,
+    [10] = 2500,
+    [11] = 2750,
+    [12] = 3000,
+    [13] = 3250,
+    [14] = 3500,
+    [15] = 3750,
+    [16] = 4000,
+    [17] = 4250,
+    [18] = 4500,
+    [19] = 4750,
+    [20] = 5000,
+    [21] = 5250,
+    [22] = 5500,
+    [23] = 5750,
+    [24] = 6000,
+    [25] = 6250,
+    [26] = 7000,
+    [27] = 8500,
+    [28] = 10000,
+    [29] = 15000,
+    [30] = 20000,
+    [31] = 30000,
+    [32] = 35000,
+    [33] = 45000,
+    [34] = 60000,
+    [35] = 70000,
+    [36] = 85000,
+    [37] = 100000,
+    [38] = 100000,
+    [39] = 150000,
+    [40] = 150000,
+    [41] = 200000,
+    [42] = 200000,
+    [43] = 250000,
+    [44] = 250000,
+    [45] = 300000,
+    [46] = 300000,
+    [47] = 350000,
+    [48] = 400000,
+    [49] = 400000,
+    [50] = 450000,
+    [51] = 500000,
+    [52] = 550000,
+    [53] = 600000,
+    [54] = 650000,
+    [55] = 700000,
+    [56] = 750000,
+    [57] = 800000,
+    [58] = 850000,
+    [59] = 900000,
+    [60] = 950000,
+    [61] = 1000000,
+    [62] = 1050000,
+    [63] = 1100000,
+    [64] = 1150000,
+    [65] = 1200000,
+    [66] = 1250000,
+    [67] = 1300000,
+    [68] = 1350000,
+    [69] = 1400000,
+    [70] = 1450000,
+    [71] = 1500000,
+    [72] = 1550000,
+    [73] = 1600000,
+    [74] = 1650000,
+    [75] = 1700000,
+    [76] = 1750000,
+    [77] = 1800000,
+    [78] = 1850000,
+    [79] = 1900000,
+    [80] = 1950000
+}
+
+
+local function len(table)
+    local count = 0
+    for _ in pairs(table) do
+        count = count + 1
+    end
+    return count
 end
+
 
 local function teleportToMaxZone()
     print("in teleportToMaxZone()")
-    local zoneName, maxZoneData = require(ReplicatedStorage.Library.Client.ZoneCmds).GetMaxOwnedZone()
+    local zoneName, maxZoneData = zoneCmds.GetMaxOwnedZone()
     print(zoneName)
     print(currentZone)
     while currentZone == zoneName do
-        zoneName, maxZoneData = require(ReplicatedStorage.Library.Client.ZoneCmds).GetMaxOwnedZone()
+        zoneName, maxZoneData = zoneCmds.GetMaxOwnedZone()
         task.wait()
     end
     currentZone = zoneName
@@ -110,17 +315,263 @@ local function teleportToMaxZone()
 end
 
 
+local function teleportToEggMachine()
+    local zonePath = Workspace.Map["8 | Backyard"]
+    -- teleport to zone first to load eggmachine cframe
+    LocalPlayer.Character.HumanoidRootPart.CFrame = zonePath.PERSISTENT.Teleport.CFrame
+    task.wait()
+
+    if not zonePath:FindFirstChild("INTERACT") then
+        local loaded = false
+        local detectLoad = zonePath.ChildAdded:Connect(function(child)
+            if child.Name == "INTERACT" then
+                loaded = true
+            end
+        end)
+
+        repeat
+            task.wait()
+        until loaded
+
+        detectLoad:Disconnect()
+    end
+
+    LocalPlayer.Character.HumanoidRootPart.CFrame = zonePath.INTERACT.Machines.EggSlotsMachine.PadGlow.CFrame
+end
+
+
+local function teleportToPetEquipMachine()
+    local zonePath = Workspace.Map["4 | Green Forest"]
+    LocalPlayer.Character.HumanoidRootPart.CFrame = zonePath.PERSISTENT.Teleport.CFrame
+    task.wait()
+
+    if not zonePath:FindFirstChild("INTERACT") then
+        local loaded = false
+        local detectLoad = zonePath.ChildAdded:Connect(function(child)
+            if child.Name == "INTERACT" then
+                loaded = true
+            end
+        end)
+
+        repeat
+            task.wait()
+        until loaded
+
+        detectLoad:Disconnect()
+    end
+
+    LocalPlayer.Character.HumanoidRootPart.CFrame = zonePath.INTERACT.Machines.EquipSlotsMachine.PadGlow.CFrame
+end
+
+
+local function checkAndPurchaseEggSlot()
+    if (tick() - eggSlotTimeStart) >= checkEggSlotDelay then
+        currentEggSlots = clientSaveGet.EggSlotsPurchased
+
+        -- if 0 to 9, 33, 67 to 79 -> +1 to currentEggSlots
+        -- if 10 to 28 -> +2 to currentEggSlots
+        -- if 30, 34 to 64 -> +3 to currentEggSlots
+        if (currentEggSlots <= 9) or (currentEggSlots == 33) or (currentEggSlots >= 67 and currentEggSlots <= 79) then
+            currentEggSlots = currentEggSlots + 1
+        elseif (currentEggSlots >= 10 and currentEggSlots <= 28) then
+            currentEggSlots = currentEggSlots + 2
+        elseif (currentEggSlots == 30) or (currentEggSlots >= 34 and currentEggSlots <= 64) then
+            currentEggSlots = currentEggSlots + 3
+        else
+            print("CANT FIND currentEggSlots!!!")
+        end
+
+        -- check if can afford egg slot
+        if currencyCmds.Get("Diamonds") >= eggSlotDiamondCost[currentEggSlots] then
+            if currentEggSlots < rankCmds.GetMaxPurchasableEggSlots() and currentEggSlots <= MAX_EGG_SLOTS then
+                originalPosition = LocalPlayer.Character.HumanoidRootPart.CFrame
+                print("Buying slot " .. tostring(currentEggSlots) .. " for " .. tostring(eggSlotDiamondCost[currentEggSlots]) .. " diamonds")
+
+                teleportToEggMachine()
+
+                task.wait(1)
+
+                local args = {
+                    [1] = currentEggSlots
+                }
+
+                ReplicatedStorage.Network.EggHatchSlotsMachine_RequestPurchase:InvokeServer(unpack(args))
+
+                print("Purchased egg slot " .. tostring(currentEggSlots))
+                task.wait(1)
+                LocalPlayer.Character.HumanoidRootPart.CFrame = originalPosition
+            end
+        end
+        eggSlotTimeStart = tick() -- restart timer
+    end
+end
+
+
+local function checkAndPurchasePetSlot()
+    if (tick() - petEquipSlotTimeStart) >= checkPetSlotDelay then 
+        currentEquipSlots = clientSaveGet.PetSlotsPurchased + 1
+        print(tick() - petEquipSlotTimeStart)
+        print(currentEquipSlots)
+        if currencyCmds.Get("Diamonds") >= petSlotDiamondCost[currentEquipSlots] then
+            print("Have enough diamonds for pet slot: ", currentEquipSlots)
+            if currentEquipSlots < rankCmds.GetMaxPurchasableEquipSlots() and currentEquipSlots <= MAX_PET_SLOTS then
+                originalPosition = LocalPlayer.Character.HumanoidRootPart.CFrame
+                print("Buying slot " .. tostring(currentEquipSlots) .. " for " .. tostring(petSlotDiamondCost[currentEquipSlots]) .. " diamonds")
+
+                teleportToPetEquipMachine()
+
+                task.wait(1)
+
+                local args = {
+                    [1] = currentEquipSlots
+                }
+                ReplicatedStorage.Network.EquipSlotsMachine_RequestPurchase:InvokeServer(unpack(args))
+                currentEquipSlots = currentEquipSlots
+
+                print("Purchased pet equip slot " .. tostring(currentEquipSlots))
+                task.wait(1)
+                LocalPlayer.Character.HumanoidRootPart.CFrame = originalPosition
+            end
+        end
+        petEquipSlotTimeStart = tick()
+    end
+end
+
+
 -- Function to extract numeric values from a string
 local function extractNumber(str)
     return tonumber(str:match("%d+")) or math.huge  -- Return a large number if no digits are found
 end
 
 
+-- Still need an update to overwrite and consume best potion
+local function findUnconsumedPotions()
+    unconsumedPotions = {"Diamonds", "Treasure Hunter", "Damage", "Lucky", "Coins"}
+    for i = #unconsumedPotions, 1, -1 do -- Loop backward so index wouldnt mess up when removing
+        if len(potionCmds.GetActivePotions()[unconsumedPotions[i]]) > 0 then
+            print("Removing ", unconsumedPotions[i])
+            table.remove(unconsumedPotions, i)
+        end
+    end
+end
+
+
+local function findBestEnchantTier()
+    for enchantId, tbl in pairs(inventory.Enchant) do
+        if tbl.id == "Coins" or tbl.id == "Tap Power" or tbl.id == "Criticals" or tbl.id == "Diamonds" or 
+        tbl.id == "Lucky Eggs" or tbl.id == "Strong Pets" or tbl.id == "Treasure Hunter" then
+            if bestEnchants[tbl.id]["tier"] < tbl.tn then
+                bestEnchants[tbl.id]["tier"] = tbl.tn
+                bestEnchants[tbl.id]["amount"] = tbl._am
+                bestEnchants[tbl.id]["id"] = enchantId
+            end
+        end
+    end
+end
+
+
+local function checkAndEquipBestSpecifiedEnchants()
+    if (tick() - enchantEquipTimeStart) >= equipEnchantDelay then 
+        for enchantSlotNumber, enchantName in pairs(enchants) do
+            task.wait(0.1)
+            if enchantSlotNumber <= clientSave.MaxEnchantsEquipped then
+                local redo = true
+                -- 1. Check if equipped with best tier, 2. if not equipped, try to equip
+                if clientSave.EquippedEnchants[tostring(enchantSlotNumber)] == bestEnchants[enchantName]["id"] then  -- EquippedEnchants[string number]
+                    print("Best enchant: ", enchantName, " already equipped.")
+                else
+                    print("No best enchant found for slot ", enchantSlotNumber)
+                    enchantCmds.Unequip(enchantSlotNumber)
+                    task.wait(1)
+                    enchantCmds.Equip(bestEnchants[enchantName]["id"])
+                    task.wait(1)
+                    if clientSave.EquippedEnchants[tostring(enchantSlotNumber)] == bestEnchants[enchantName]["id"] then
+                        print("Empty slot equipped ", enchantName)
+                    else
+                        local secondaryBestEnchantTier = bestEnchants[enchantName]["tier"]
+                        while redo do
+                            secondaryBestEnchantTier = secondaryBestEnchantTier - 1 -- best enchant for the other slot that wanted the same enchant
+                            
+                            if secondaryBestEnchantTier >= 1 then -- if its more than tier 1, continue
+                                for enchantId, tbl in pairs(inventory.Enchant) do
+                                    if tbl.id == "Coins" or tbl.id == "Tap Power" or tbl.id == "Criticals" or tbl.id == "Diamonds" or 
+                                    tbl.id == "Lucky Eggs" or tbl.id == "Strong Pets" or tbl.id == "Treasure Hunter" then
+
+                                        if tbl.tn == secondaryBestEnchantTier and tbl.id == enchantName then -- if tier found in inventory same as downgraded tier, equip it
+                                            print(tbl.id)
+                                            enchantCmds.Unequip(enchantSlotNumber)
+                                            enchantCmds.Equip(enchantId)
+                                            redo = false
+                                            break
+                                        end
+                                    end
+                                end
+                            else
+                                print("No enchant found for ", enchantSlotNumber, " slot.")
+                                redo = false
+                            end
+                        end
+                    end
+                end
+            end
+        end
+        enchantEquipTimeStart = tick()
+    end
+end
+
+
+local function checkAndPurchaseUpgrades()
+    local zonePath
+    local zoneName, zoneData = zoneCmds.GetMaxOwnedZone()
+    -- Reverse iterate through the upgrades table
+    for i = #upgrades, 1, -1 do
+        local upgrade = upgrades[i]
+        local ability = upgrade[1]
+        local areaNumber = upgrade[2]
+        local mapName = upgrade[3]
+        local gemAmount = upgrade[4]
+
+        -- logic for processing upgrades
+        if areaNumber < zoneData.ZoneNumber then
+            if upgradeCmds.Owns(ability, mapName) then
+                table.remove(upgrades, i)
+            elseif not upgradeCmds.Owns(ability, mapName) then
+                originalPosition = LocalPlayer.Character.HumanoidRootPart.CFrame -- save original position
+                -- Teleport to zone so it can detect if owned, if too far it will detect false.
+                for _, v in pairs(map:GetChildren()) do
+                    if string.find(v.Name, tostring(areaNumber) .. " | " .. mapName) then
+                        zonePath = v
+                    end
+                end
+                LocalPlayer.Character.HumanoidRootPart.CFrame = zonePath:WaitForChild("PERSISTENT").Teleport.CFrame + Vector3.new(0, 10, 0)
+                for _, v in pairs(zonePath:WaitForChild("INTERACT").Upgrades:GetChildren()) do
+                    LocalPlayer.Character.HumanoidRootPart.CFrame = v.Center.CFrame + Vector3.new(0, 10, 0)
+                    task.wait(1)
+                end
+
+                -- Check if owned or affordable
+                task.wait(1)
+                if not upgradeCmds.Owns(ability, mapName) and currencyCmds.Get("Diamonds") > gemAmount then
+                    print("Bought " .. ability .. " from " .. mapName)
+                    upgradeCmds.Purchase(ability, mapName)
+                    table.remove(upgrades, i)
+                    task.wait(1)
+                    LocalPlayer.Character.HumanoidRootPart.CFrame = originalPosition
+                elseif upgradeCmds.Owns(ability, mapName) then
+                    table.remove(upgrades, i)
+                    LocalPlayer.Character.HumanoidRootPart.CFrame = originalPosition
+                end
+            end  
+        end
+    end
+end
+
+
 local function getEgg()
-    bestEgg = require(game:GetService("ReplicatedStorage").Library.Client.Save).Get().MaximumAvailableEgg
+    bestEgg = clientSaveGet.MaximumAvailableEgg
     
     while true do
-        local eggData = require(game:GetService("ReplicatedStorage").Library.Util.EggsUtil).GetByNumber(bestEgg)
+        local eggData = require(Library.Util.EggsUtil).GetByNumber(bestEgg)
         if eggData then
             print(eggData.name)
             print(eggData.eggNumber)
@@ -144,9 +595,9 @@ local function autoHatchWithoutAnimation(eggData)
     if (tick() - timeStart) >= fastestHatchTime then
         timeStart = tick()
         if hatchAmount <= maxHatchAmount then
-            game:GetService("ReplicatedStorage").Network.Eggs_RequestPurchase:InvokeServer(eggData.name, hatchAmount)
+            ReplicatedStorage.Network.Eggs_RequestPurchase:InvokeServer(eggData.name, hatchAmount)
         else
-            game:GetService("ReplicatedStorage").Network.Eggs_RequestPurchase:InvokeServer(eggData.name, maxHatchAmount)
+            ReplicatedStorage.Network.Eggs_RequestPurchase:InvokeServer(eggData.name, maxHatchAmount)
         end
     end
 end
@@ -155,7 +606,7 @@ end
 local function teleportAndHatch()
     currentZone = nil  -- reset current zone to teleport back smoothly
     eggData = getEgg()
-    -- Teleport to Egg
+    -- Teleport to Best Egg
     for _, v in pairs(game:GetService("Workspace").__THINGS.Eggs.Main:GetChildren()) do
         if string.find(v.Name, tostring(eggData.eggNumber) .. " - ") then
             eggCFrame = v.Tier.CFrame + Vector3.new(0, 10, 0)
@@ -183,72 +634,120 @@ local function removeValue(t, value)
 end
 
 
-local function checkFruitEmpty(key)
-    for _, name in pairs(emptyFruits) do 
-        if name == key then
-            return true
-        end
-    end
-end
-
-
-local function checkAndEatFruits()
-    -- update encrypted fruitId
-    for key, value in pairs(inventoryFruit) do
-        fruitId[value["id"]] = key
-    end
-
-    -- check if 0 fruit
-    for fruitId, value in pairs(inventoryFruit) do
-        local length = 0
-        for _ in pairs(value) do
-            length = length + 1
-        end
-        if length == 1 then
-            -- value["id"] is name of fruit
-            table.insert(emptyFruits, value["id"])
-        end
-    end
-
-    uneatenFruits = {"Orange", "Pineapple", "Apple", "Banana", "Rainbow", "Watermelon"}
-    for fruitName, value in pairs(fruitCmds.GetActiveFruits()) do 
-        removeValue(uneatenFruits, fruitName)
-        if #value["Normal"] < fruitCmds.ComputeFruitQueueLimit() then  -- if current fruit queue not max, eat
-            -- check if fruit is available
-            if checkFruitEmpty(fruitName) ~= true then
-                fruitCmds.Consume(fruitId[fruitName])
-                task.wait(1)
-            end
-        end
-    end
-
-    -- Eat any fruits that are not in queue
-    for _, fruitName in pairs(uneatenFruits) do
-        if checkFruitEmpty(fruitName) ~= true then
-            fruitCmds.Consume(fruitId[fruitName])
-            task.wait(1)
-        end
-    end
-    print('Done eating fruits...')
-end
-
-
 local function checkAndRedeemGift()
     for giftIndex, seconds in pairs(giftTiming) do
-        if clientSave.FreeGiftsTime >= seconds then
+        if clientSaveGet.FreeGiftsTime >= seconds then
             print("Redeeming Gift ", giftIndex)
-            game:GetService("ReplicatedStorage"):WaitForChild("Network"):WaitForChild("Redeem Free Gift"):InvokeServer(giftIndex)
-            task.wait(2) -- wait to collect gifts properly
+            ReplicatedStorage:WaitForChild("Network"):WaitForChild("Redeem Free Gift"):InvokeServer(giftIndex)
+            task.wait(1) -- wait to collect gifts properly
         else
             break
         end
     end
 
-    for i, _ in pairs(clientSave.FreeGiftsRedeemed) do
-        if giftTiming[clientSave.FreeGiftsRedeemed[i]] ~= nil then
-            giftTiming[clientSave.FreeGiftsRedeemed[i]] = nil
+    for i, _ in pairs(clientSaveGet.FreeGiftsRedeemed) do
+        if giftTiming[clientSaveGet.FreeGiftsRedeemed[i]] ~= nil then
+            giftTiming[clientSaveGet.FreeGiftsRedeemed[i]] = nil
         end
     end
+end
+
+
+local function checkAndRedeemRankRewards()
+    -- claim all ranked quest when all rewards ready
+    if rankCmds.AllRewardsReady() then
+        for i=1, clientSaveGet.RankStars do
+            task.wait(1)
+            if clientSaveGet.RedeemedRankRewards[tostring(i)] ~= true then
+                print("Redeeming ", i)
+                ReplicatedStorage:WaitForChild("Network"):WaitForChild("Ranks_ClaimReward"):FireServer(i)
+            end
+        end
+    end
+end
+
+
+local function checkAndUseFruits()
+    for fruitId, tbl in pairs(fruitInventory) do
+        task.wait(0.5)
+        if tbl.id ~= "Rainbow" then
+            if (#fruitCmds.GetActiveFruits()[tbl.id]["Normal"] < maxFruitQueue) and (tbl._am ~= nil) then
+                print("Continue consuming ", tbl.id)
+                if tbl._am < fruitCmds.GetMaxConsume(fruitId) then
+                    fruitCmds.Consume(fruitId, tonumber(tbl._am))
+                else
+                    fruitCmds.Consume(fruitId, fruitCmds.GetMaxConsume(fruitId))
+                end
+            end
+        else
+            if tbl._am < fruitCmds.GetMaxConsume(fruitId) then
+                fruitCmds.Consume(fruitId, tonumber(tbl._am))
+            else
+                fruitCmds.Consume(fruitId, fruitCmds.GetMaxConsume(fruitId))
+            end
+        end
+    end
+end
+
+
+local function checkAndConsumeGifts()
+    for itemId, value in pairs(inventory.Misc) do
+        if string.find(value.id:lower(), "bundle") or string.find(value.id:lower(), "gift bag") or (value.id == "Mini Chest") then
+            if not value._am then
+                ReplicatedStorage:WaitForChild("Network"):WaitForChild("GiftBag_Open"):InvokeServer(value.id)
+            elseif value._am < 100 then
+                ReplicatedStorage:WaitForChild("Network"):WaitForChild("GiftBag_Open"):InvokeServer(value.id, value._am)
+            else
+                ReplicatedStorage:WaitForChild("Network"):WaitForChild("GiftBag_Open"):InvokeServer(value.id, 100)
+            end
+            task.wait(1)
+        end
+    end
+end
+
+
+local function checkAndConsumePotions()
+    for i, potionName in ipairs(unconsumedPotions) do
+        highestTierPotion = 0  -- reset tier for other potions
+        highestTierPotionId = nil
+        for itemId, value in pairs(inventory.Potion) do
+            if value.id == potionName then
+                if highestTierPotion < value.tn then
+                    highestTierPotion = value.tn
+                    highestTierPotionId = itemId
+                end
+            end
+        end
+        print("Consuming ", highestTierPotionId, ", Tier: ", highestTierPotion)
+        task.wait(1)
+        potionCmds.Consume(highestTierPotionId)
+    end
+end
+
+
+local function checkAndConsumeToys()
+    -- No Toyball, useless with maxspeed
+    for itemId, value in pairs(inventory.Misc) do
+        if value.id == "Squeaky Toy" then
+            if not buffCmds.IsActive("Squeaky Toy") then
+                print("Consuming Squeak Toy.")
+                task.wait(1)
+                ReplicatedStorage:WaitForChild("Network"):WaitForChild("SqueakyToy_Consume"):InvokeServer()
+            end
+        elseif value.id == "Toy Bone" then
+            if not buffCmds.IsActive("Toy Bone") then
+                print("Consuming Toy Bone")
+                task.wait(1)
+                ReplicatedStorage:WaitForChild("Network"):WaitForChild("ToyBone_Consume"):InvokeServer()
+            end
+        end
+    end
+end
+    
+
+-- Pet speed 200%
+require(Client.PlayerPet).CalculateSpeedMultiplier = function(...)
+    return 200
 end
 
 
@@ -276,35 +775,33 @@ Workspace.__THINGS:FindFirstChild("Orbs").ChildAdded:Connect(function(orb)
     end
 end)
 
-game:GetService("ReplicatedStorage"):WaitForChild("Network"):WaitForChild("ForeverPacks: Claim Free"):InvokeServer("Default")  -- collect free foreverpack
+ReplicatedStorage:WaitForChild("Network"):WaitForChild("ForeverPacks: Claim Free"):InvokeServer("Default")  -- collect free foreverpack
+if not clientSaveGet.PickedStarterPet then
+    print("New Account Detected... Picking Starter Pets.")
+    ReplicatedStorage:WaitForChild("Network"):WaitForChild("Pick Starter Pets"):InvokeServer(unpack({"Cat", "Dog"}))
+end 
 
-
-
-local nextRebirthData = require(game:GetService("ReplicatedStorage").Library.Client.RebirthCmds).GetNextRebirth()
-local rebirthNumber
-local rebirthZone
-local startAutoHatchEggDelay = tick()
-local autoHatchEggDelay = 120
 
 if nextRebirthData then
     rebirthNumber = nextRebirthData.RebirthNumber
     rebirthZone = nextRebirthData.ZoneNumberRequired
 end
 
+
 task.spawn(function()
     print("Starting zone purchase service")
     while unfinished do
-        local nextZoneName, nextZoneData = require(game:GetService("ReplicatedStorage").Library.Client.ZoneCmds).GetNextZone()
-        local success, _ = game:GetService("ReplicatedStorage").Network.Zones_RequestPurchase:InvokeServer(nextZoneName)
+        local nextZoneName, nextZoneData = zoneCmds.GetNextZone()
+        local success, _ = ReplicatedStorage.Network.Zones_RequestPurchase:InvokeServer(nextZoneName)
         if success then
             print("Successfully purchased " .. nextZoneName)
             if getgenv().autoWorldConfig.AUTO_REBIRTH then
                 pcall(function()
                     if nextZoneData.ZoneNumber >= rebirthZone then
                         print("Rebirthing")
-                        game:GetService("ReplicatedStorage").Network.Rebirth_Request:InvokeServer(tostring(rebirthNumber))
+                        ReplicatedStorage.Network.Rebirth_Request:InvokeServer(tostring(rebirthNumber))
                         task.wait(15)
-                        nextRebirthData = require(game:GetService("ReplicatedStorage").Library.Client.RebirthCmds).GetNextRebirth()
+                        nextRebirthData = rebirthCmds.GetNextRebirth()
                         if nextRebirthData then
                             rebirthNumber = nextRebirthData.RebirthNumber
                             rebirthZone = nextRebirthData.ZoneNumberRequired
@@ -321,8 +818,17 @@ task.spawn(function()
             teleportToMaxZone()
             startAutoHatchEggDelay = tick()
         end
-        checkAndEatFruits()
+        checkAndEquipBestSpecifiedEnchants()
         checkAndRedeemGift()
+        checkAndRedeemRankRewards()
+        checkAndUseFruits()
+        checkAndConsumeToys()
+        checkAndConsumePotions()
+        checkAndPurchaseEggSlot()
+        checkAndPurchasePetSlot()
+        checkAndConsumeGifts()
+        checkAndPurchaseUpgrades()
+
         task.wait(getgenv().autoWorldConfig.PURCHASE_CHECK_DELAY)
     end
 end)
