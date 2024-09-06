@@ -1,5 +1,5 @@
 loadstring(game:HttpGet("https://raw.githubusercontent.com/fdvll/pet-simulator-99/main/waitForGameLoad.lua"))()
-print("rebirth started123.")
+print("rebirth started.")
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Library = ReplicatedStorage:WaitForChild("Library")
@@ -453,8 +453,6 @@ end
 local function checkAndPurchasePetSlot()
     if (tick() - petEquipSlotTimeStart) >= checkPetSlotDelay then 
         currentEquipSlots = clientSaveGet.PetSlotsPurchased + 1
-        print(tick() - petEquipSlotTimeStart)
-        print(currentEquipSlots)
         if currencyCmds.Get("Diamonds") >= petSlotDiamondCost[currentEquipSlots] then
             print("Have enough diamonds for pet slot: ", currentEquipSlots)
             if currentEquipSlots < rankCmds.GetMaxPurchasableEquipSlots() and currentEquipSlots <= MAX_PET_SLOTS then
@@ -492,7 +490,6 @@ local function findUnconsumedPotions()
     unconsumedPotions = {"Diamonds", "Treasure Hunter", "Damage", "Lucky", "Coins"}
     for i = #unconsumedPotions, 1, -1 do -- Loop backward so index wouldnt mess up when removing
         if len(potionCmds.GetActivePotions()[unconsumedPotions[i]]) > 0 then
-            print("Removing ", unconsumedPotions[i])
             table.remove(unconsumedPotions, i)
         end
     end
@@ -514,6 +511,7 @@ end
 
 
 local function checkAndEquipBestSpecifiedEnchants()
+    findBestEnchantTier()
     if (tick() - enchantEquipTimeStart) >= equipEnchantDelay then 
         for enchantSlotNumber, enchantName in pairs(enchants) do
             task.wait(0.1)
