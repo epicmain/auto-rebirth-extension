@@ -74,6 +74,7 @@ local unconsumedPotions -- Diamonds, Treasure Hunter, Damage, Lucky, Coins ... W
 
 -- vvv Enchant variables vvv
 local enchantCmds = require(Client.EnchantCmds)
+local enchantEquipTimeStart = tick()
 local equipEnchantDelay = 60
 local enchantIdToName
 local enchants = {
