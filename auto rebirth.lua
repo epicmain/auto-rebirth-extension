@@ -1,5 +1,5 @@
 loadstring(game:HttpGet("https://raw.githubusercontent.com/fdvll/pet-simulator-99/main/waitForGameLoad.lua"))()
-print("rebirth started222.")
+print("rebirth started.")
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Library = ReplicatedStorage:WaitForChild("Library")
@@ -831,6 +831,7 @@ end
 
 
 task.spawn(function()
+    task.wait(5)
     print("Starting zone purchase service")
     while unfinished do
         local nextZoneName, nextZoneData = zoneCmds.GetNextZone()
