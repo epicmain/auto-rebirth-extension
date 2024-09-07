@@ -1,5 +1,5 @@
 loadstring(game:HttpGet("https://raw.githubusercontent.com/fdvll/pet-simulator-99/main/waitForGameLoad.lua"))()
-print("rebirth started.")
+print("rebirth started updated party.")
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Library = ReplicatedStorage:WaitForChild("Library")
@@ -23,6 +23,7 @@ local inventory = clientSaveGet.Inventory
 local unfinished = true
 local currentZone
 local rebirthCmds = require(Client.RebirthCmds)
+local hypeCmds = require(Client.HypeEventCmds)
 local nextRebirthData = rebirthCmds.GetNextRebirth()
 local rebirthNumber
 local rebirthZone
@@ -30,9 +31,6 @@ local originalPosition
 
 local startAutoHatchEggDelay = tick()
 local autoHatchEggDelay = 120
-local eggSlotMaxed = false
-local petEquipSlotMaxed = false
-
 
 -- vvv Egg hatching variables vvv
 local bestEgg = nil
@@ -41,7 +39,8 @@ local fastestHatchTime = getsenv(game:GetService("Players").LocalPlayer.PlayerSc
 local currentMaxHatch = require(Client.EggCmds).GetMaxHatch()
 local eggData
 local eggCFrame
-local maxHatchAmount = 5
+local maxHatchAmount = 10
+local eggHatchedBefore = 0
 -- ^^^ Egg hatching variables ^^^
 
 --- vvv EggSlot variables vvv
@@ -57,7 +56,7 @@ local currentEquipSlots
 local currentmaxPurchaseableEquips = rankCmds.GetMaxPurchasableEquipSlots()
 local checkPetSlotDelay = 5
 local petEquipSlotTimeStart = tick()
-local MAX_PET_SLOTS = 20
+local MAX_PET_SLOTS = 35
 --- ^^^ Pet slot variables ^^^
 
 -- vvv Fruit variables vvv
@@ -99,6 +98,7 @@ local bestEnchants = {
 
 -- vvv Upgrades variables vvv
 local upgradeCmds = require(game:GetService("ReplicatedStorage").Library.Client.UpgradeCmds)
+local MAX_UPGRADE_GEM = 20000
 -- ^^^ Upgrades variables ^^^
 
 local buffCmds = require(Client.BuffCmds)
@@ -307,6 +307,9 @@ end
 
 local function teleportToMaxZone()
     print("in teleportToMaxZone()")
+    bestEgg = clientSaveGet.MaximumAvailableEgg
+    eggData = require(Library.Util.EggsUtil).GetByNumber(bestEgg) -- gets eggData.name, .eggNumber
+
     local zoneName, maxZoneData = zoneCmds.GetMaxOwnedZone()
     print(zoneName)
     print(currentZone)
@@ -445,8 +448,6 @@ local function checkAndPurchaseEggSlot()
                 print("Purchased egg slot " .. tostring(currentEggSlots))
                 task.wait(1)
                 LocalPlayer.Character.HumanoidRootPart.CFrame = originalPosition
-            else
-                eggSlotMaxed = true
             end
         end
         eggSlotTimeStart = tick() -- restart timer
@@ -458,7 +459,6 @@ local function checkAndPurchasePetSlot()
     if (tick() - petEquipSlotTimeStart) >= checkPetSlotDelay then 
         currentEquipSlots = clientSaveGet.PetSlotsPurchased + 1
         if currencyCmds.Get("Diamonds") >= petSlotDiamondCost[currentEquipSlots] then
-            print("Have enough diamonds for pet slot: ", currentEquipSlots)
             if currentEquipSlots < rankCmds.GetMaxPurchasableEquipSlots() and currentEquipSlots <= MAX_PET_SLOTS then
                 originalPosition = LocalPlayer.Character.HumanoidRootPart.CFrame
                 print("Buying slot " .. tostring(currentEquipSlots) .. " for " .. tostring(petSlotDiamondCost[currentEquipSlots]) .. " diamonds")
@@ -582,7 +582,7 @@ local function checkAndPurchaseUpgrades()
         if areaNumber < zoneData.ZoneNumber then
             if upgradeCmds.Owns(ability, mapName) then
                 table.remove(upgrades, i)
-            elseif not upgradeCmds.Owns(ability, mapName) and currencyCmds.Get("Diamonds") > gemAmount then
+            elseif not upgradeCmds.Owns(ability, mapName) and currencyCmds.Get("Diamonds") > gemAmount and gemAmount < MAX_UPGRADE_GEM then
                 originalPosition = LocalPlayer.Character.HumanoidRootPart.CFrame -- save original position
                 -- Teleport to zone so it can detect if owned, if too far it will detect false.
                 for _, v in pairs(map:GetChildren()) do
@@ -597,8 +597,8 @@ local function checkAndPurchaseUpgrades()
                 end
 
                 -- Check if owned or affordable
-                task.wait(1)
                 if not upgradeCmds.Owns(ability, mapName) and currencyCmds.Get("Diamonds") > gemAmount then
+                    task.wait(1)
                     print("Bought " .. ability .. " from " .. mapName)
                     upgradeCmds.Purchase(ability, mapName)
                     table.remove(upgrades, i)
@@ -606,6 +606,7 @@ local function checkAndPurchaseUpgrades()
                     LocalPlayer.Character.HumanoidRootPart.CFrame = originalPosition
                 elseif upgradeCmds.Owns(ability, mapName) then
                     table.remove(upgrades, i)
+                    task.wait(1)
                     LocalPlayer.Character.HumanoidRootPart.CFrame = originalPosition
                 end
             end  
@@ -614,25 +615,7 @@ local function checkAndPurchaseUpgrades()
 end
 
 
-local function getEgg()
-    bestEgg = clientSaveGet.MaximumAvailableEgg
-    
-    while true do
-        local eggData = require(Library.Util.EggsUtil).GetByNumber(bestEgg)
-        if eggData then
-            print(eggData.name)
-            print(eggData.eggNumber)
-            return eggData
-        else
-            print("NO BEST EGG FOUND!")
-            break
-        end
-    end
-    return nil
-end
-
-
-local function autoHatchWithoutAnimation(eggData)
+local function autoHatchWithoutAnimation()
     -- disable egg hatch animation
     hookfunction(getsenv(game.Players.LocalPlayer.PlayerScripts.Scripts.Game["Egg Opening Frontend"]).PlayEggAnimation, function()
         return
@@ -650,24 +633,32 @@ local function autoHatchWithoutAnimation(eggData)
 end
 
 
+-- local function getBestEggData()
+--     bestEgg = clientSaveGet.MaximumAvailableEgg
+--     eggData = require(Library.Util.EggsUtil).GetByNumber(bestEgg) -- gets eggData.name, .eggNumber
+-- end
+
+
 local function teleportAndHatch()
-    currentZone = nil  -- reset current zone to teleport back smoothly
-    eggData = getEgg()
+    originalPosition = LocalPlayer.Character.HumanoidRootPart.CFrame
     -- Teleport to Best Egg
     for _, v in pairs(game:GetService("Workspace").__THINGS.Eggs.Main:GetChildren()) do
         if string.find(v.Name, tostring(eggData.eggNumber) .. " - ") then
             eggCFrame = v.Tier.CFrame + Vector3.new(0, 10, 0)
         end
     end
+    task.wait(1)
     game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = eggCFrame  -- Teleport to egg
 
     -- Hatch eggs
-    for i=1, 10 do
-        autoHatchWithoutAnimation(eggData)
+    for i=1, 11 do  -- hatch 10 times
+        autoHatchWithoutAnimation()
         task.wait(fastestHatchTime)
     end
-
+    eggHatchedBefore = eggData.eggNumber
     print("Done Hatching...")
+
+    LocalPlayer.Character.HumanoidRootPart.CFrame = originalPosition
 end
 
 
@@ -859,10 +850,8 @@ task.spawn(function()
             teleportToMaxZone()
             startAutoHatchEggDelay = tick()
         end
-        if (tick() - startAutoHatchEggDelay) >= autoHatchEggDelay then
+        if (tick() - startAutoHatchEggDelay) >= autoHatchEggDelay and eggHatchedBefore ~= eggData.eggNumber then
             teleportAndHatch()
-            print("Teleporting To Max Zone After Hatching.")
-            teleportToMaxZone()
             startAutoHatchEggDelay = tick()
         end
 
@@ -892,7 +881,10 @@ task.spawn(function()
             checkAndRedeemGift()
         end
         checkAndRedeemRankRewards()
-
+        
+        if hypeCmds.IsActive() and hypeCmds.GetTimeRemaining() == 0 and not hypeCmds.IsCompleted() then
+            game:GetService("ReplicatedStorage"):WaitForChild("Network"):WaitForChild("Hype Wheel: Claim"):InvokeServer()
+        end
 
         task.wait(getgenv().autoWorldConfig.PURCHASE_CHECK_DELAY)
     end
