@@ -1,15 +1,9 @@
-loadstring(game:HttpGet("https://raw.githubusercontent.com/fdvll/pet-simulator-99/main/cpuReducer.lua"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/zhen2004ming/auto-rebirth-extension/main/cpu-optimizer.lua"))()
 
 local RepStor = game:GetService("ReplicatedStorage")
 local LocalPlayer = game.Players.LocalPlayer
 local maxBreakableDistance = 50  -- 150 is max
 local timeStart = 0
-
--- local fruitCmds = require(RepStor.Library.Client.FruitCmds)
--- local availableFruits = require(RepStor.Library).Save.Get().Inventory.Fruit
--- local maxFruit = fruitCmds.ComputeFruitQueueLimit()
--- local totalCurrentFruits = 0
-
 
 local function tapAura()
     local playerCFrame = LocalPlayer.Character:WaitForChild("HumanoidRootPart").CFrame
@@ -27,33 +21,8 @@ local function tapAura()
 end
 
 
--- local function autoFruits()
---     -- auto fruits
---     local activeFruitTable = {
---         ["Apple"] = 0,
---         ["Banana"] = 0,
---         ["Orange"] = 0,
---         ["Pineapple"] = 0,
---         ["Watermelon"] = 0,
---         ["Rainbow"] = 0
---     }  -- stores currently used fruit amounts
---     for fruitName, tb in fruitCmds.GetActiveFruits() do
---         activeFruitTable[fruitName] = #tb
---         totalCurrentFruits = totalCurrentFruits + #tb
---     end
-
---     if totalCurrentFruits < (maxFruit * 6) then
---         print("Eating Fruits...")
---         for fruitId, tb in pairs(availableFruits) do
---             task.wait(0.2)
---             RepStor:WaitForChild("Network"):WaitForChild("Fruits: Consume"):FireServer(fruitId, maxFruit - activeFruitTable[tb["id"]])
---         end
---         print("Done Eating Fruits...")
---     end
--- end
-
-
 local function activateUlti()
+    print("activate ult")
     -- activate ultimate
     local ultiActive = require(RepStor.Library.Client.UltimateCmds).IsCharged("Ground Pound")
     if ultiActive then
