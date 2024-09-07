@@ -1,5 +1,5 @@
 loadstring(game:HttpGet("https://raw.githubusercontent.com/fdvll/pet-simulator-99/main/waitForGameLoad.lua"))()
-print("rebirth started321.")
+print("rebirth started.")
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Library = ReplicatedStorage:WaitForChild("Library")
@@ -582,7 +582,7 @@ local function checkAndPurchaseUpgrades()
         if areaNumber < zoneData.ZoneNumber then
             if upgradeCmds.Owns(ability, mapName) then
                 table.remove(upgrades, i)
-            elseif not upgradeCmds.Owns(ability, mapName) then
+            elseif not upgradeCmds.Owns(ability, mapName) and currencyCmds.Get("Diamonds") > gemAmount then
                 originalPosition = LocalPlayer.Character.HumanoidRootPart.CFrame -- save original position
                 -- Teleport to zone so it can detect if owned, if too far it will detect false.
                 for _, v in pairs(map:GetChildren()) do
@@ -880,7 +880,7 @@ task.spawn(function()
 
         local zoneName, maxZoneData = zoneCmds.GetMaxOwnedZone()
         if maxZoneData.ZoneNumber >= 2 then -- still gotta check if petslot and eggslot is fully maxed
-            checkAndPurchaseUpgrades()
+            checkAndPurchaseUpgrades()  -- stil buggy, loop keeps teleporting to it even when cant afford
         end
         if maxZoneData.ZoneNumber >= 4 then
             checkAndPurchasePetSlot()
