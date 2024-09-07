@@ -1,5 +1,5 @@
 loadstring(game:HttpGet("https://raw.githubusercontent.com/fdvll/pet-simulator-99/main/waitForGameLoad.lua"))()
-print("rebirth started yes.")
+print("rebirth started.")
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Library = ReplicatedStorage:WaitForChild("Library")
@@ -327,7 +327,7 @@ local function teleportToMaxZone()
         end
     end
     LocalPlayer.Character.HumanoidRootPart.CFrame = zonePath:WaitForChild("PERSISTENT").Teleport.CFrame + Vector3.new(0, 10, 0)
-    task.wait()
+    task.wait(1)
 
     if not zonePath:FindFirstChild("INTERACT") then
         local loaded = false
@@ -347,7 +347,6 @@ local function teleportToMaxZone()
     local dist = 999
     local closestBreakZone = nil
     for _, v in pairs(zonePath.INTERACT.BREAK_ZONES:GetChildren()) do
-        print(_, v)
         local magnitude = (LocalPlayer.Character.HumanoidRootPart.Position - v.Position).Magnitude
         if magnitude <= dist then
             dist = magnitude
@@ -355,10 +354,6 @@ local function teleportToMaxZone()
         end
     end
 
-    print("xxdd")
-    print(LocalPlayer.Character.HumanoidRootPart.CFrame)
-    print(closestBreakZone)
-    print(closestBreakZone.CFrame)
     LocalPlayer.Character.HumanoidRootPart.CFrame = closestBreakZone.CFrame + Vector3.new(0, 10, 0)
 
     if maxZoneData.ZoneNumber >= getgenv().autoWorldConfig.ZONE_TO_REACH then
