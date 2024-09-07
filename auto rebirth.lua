@@ -1,5 +1,5 @@
 loadstring(game:HttpGet("https://raw.githubusercontent.com/fdvll/pet-simulator-99/main/waitForGameLoad.lua"))()
-print("rebirth started updated party.")
+print("rebirth started Party Upgrade.")
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Library = ReplicatedStorage:WaitForChild("Library")
@@ -656,6 +656,7 @@ local function teleportAndHatch()
         task.wait(fastestHatchTime)
     end
     eggHatchedBefore = eggData.eggNumber
+    print("Hatching ", eggData.name)
     print("Done Hatching...")
 
     LocalPlayer.Character.HumanoidRootPart.CFrame = originalPosition
@@ -675,7 +676,7 @@ end
 local function checkAndRedeemGift()
     for giftIndex, seconds in pairs(giftTiming) do
         if clientSaveGet.FreeGiftsTime >= seconds then
-            print("Redeeming Gift ", giftIndex)
+            print("Redeeming Free Gift ", giftIndex)
             ReplicatedStorage:WaitForChild("Network"):WaitForChild("Redeem Free Gift"):InvokeServer(giftIndex)
             task.wait(1) -- wait to collect gifts properly
         else
@@ -697,7 +698,7 @@ local function checkAndRedeemRankRewards()
         for i=1, clientSaveGet.RankStars do
             task.wait(1)
             if clientSaveGet.RedeemedRankRewards[tostring(i)] ~= true then
-                print("Redeeming ", i)
+                print("Redeeming ", i, " rank reward.")
                 ReplicatedStorage:WaitForChild("Network"):WaitForChild("Ranks_ClaimReward"):FireServer(i)
             end
         end
@@ -711,7 +712,6 @@ local function checkAndConsumeFruits()
         if fruitCmds.GetActiveFruits()[tbl.id] ~= nil then
             if (#fruitCmds.GetActiveFruits()[tbl.id]["Normal"] < maxFruitQueue) and (tbl._am ~= nil) then
                 print("Continue consuming ", tbl.id)
-                print(tbl.id, ": ", fruitId)
                 if tbl._am < fruitCmds.GetMaxConsume(fruitId) then
                     fruitCmds.Consume(fruitId, tonumber(tbl._am))
                 else
@@ -729,10 +729,13 @@ local function checkAndConsumeGifts()
     for itemId, value in pairs(inventory.Misc) do
         if string.find(value.id:lower(), "bundle") or string.find(value.id:lower(), "gift bag") or (value.id == "Mini Chest") then
             if not value._am then
+                print("Consuming ", value.id)
                 ReplicatedStorage:WaitForChild("Network"):WaitForChild("GiftBag_Open"):InvokeServer(value.id)
             elseif value._am < 100 then
+                print("Consuming ", value.id)
                 ReplicatedStorage:WaitForChild("Network"):WaitForChild("GiftBag_Open"):InvokeServer(value.id, value._am)
             else
+                print("Consuming ", value.id)
                 ReplicatedStorage:WaitForChild("Network"):WaitForChild("GiftBag_Open"):InvokeServer(value.id, 100)
             end
             task.wait(1)
@@ -755,7 +758,7 @@ local function checkAndConsumePotions()
             end
         end
         if highestTierPotion > 0 then
-            print("Consuming ", highestTierPotionId, ", Tier: ", highestTierPotion)
+            print("Consuming ", potionName, ", Tier: ", highestTierPotion)
             task.wait(1)
             potionCmds.Consume(highestTierPotionId)
         end
