@@ -1,5 +1,5 @@
 loadstring(game:HttpGet("https://raw.githubusercontent.com/fdvll/pet-simulator-99/main/waitForGameLoad.lua"))()
-print("rebirth started Party Upgrade.")
+print("rebirth started yes.")
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Library = ReplicatedStorage:WaitForChild("Library")
@@ -347,6 +347,7 @@ local function teleportToMaxZone()
     local dist = 999
     local closestBreakZone = nil
     for _, v in pairs(zonePath.INTERACT.BREAK_ZONES:GetChildren()) do
+        print(_, v)
         local magnitude = (LocalPlayer.Character.HumanoidRootPart.Position - v.Position).Magnitude
         if magnitude <= dist then
             dist = magnitude
@@ -354,6 +355,10 @@ local function teleportToMaxZone()
         end
     end
 
+    print("xxdd")
+    print(LocalPlayer.Character.HumanoidRootPart.CFrame)
+    print(closestBreakZone)
+    print(closestBreakZone.CFrame)
     LocalPlayer.Character.HumanoidRootPart.CFrame = closestBreakZone.CFrame + Vector3.new(0, 10, 0)
 
     if maxZoneData.ZoneNumber >= getgenv().autoWorldConfig.ZONE_TO_REACH then
@@ -656,7 +661,7 @@ local function teleportAndHatch()
         task.wait(fastestHatchTime)
     end
     eggHatchedBefore = eggData.eggNumber
-    print("Hatching ", eggData.name)
+    print("Hatching", eggData.name)
     print("Done Hatching...")
 
     LocalPlayer.Character.HumanoidRootPart.CFrame = originalPosition
