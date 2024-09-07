@@ -1,5 +1,5 @@
 loadstring(game:HttpGet("https://raw.githubusercontent.com/fdvll/pet-simulator-99/main/waitForGameLoad.lua"))()
-print("rebirth started gus.")
+print("rebirth started. xxxx")
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Library = ReplicatedStorage:WaitForChild("Library")
@@ -862,23 +862,33 @@ task.spawn(function()
             startAutoHatchEggDelay = tick()
         end
 
-        if (inventory.Fruit == nil and inventory.Enchant == nil and inventory.Potion == nil) == false then
-            checkAndEquipBestSpecifiedEnchants()
-            checkAndRedeemGift()
+        if not (inventory.Fruit == nil) then
             checkAndConsumeFruits()
-            checkAndConsumeGifts()
-            checkAndConsumeToys()
+            checkAndConsumeGifts() -- misc
+            checkAndConsumeToys() -- misc
+        end
+        if not (inventory.Potion == nil) then
             checkAndConsumePotions()
         end
-
-        checkAndRedeemRankRewards()
+        if not (inventory.Enchant == nil) then
+            checkAndEquipBestSpecifiedEnchants()
+        end
 
         local zoneName, maxZoneData = zoneCmds.GetMaxOwnedZone()
+        if maxZoneData.ZoneNumber >= 2 then -- still gotta check if petslot and eggslot is fully maxed
+            checkAndPurchaseUpgrades()
+        end
+        if maxZoneData.ZoneNumber >= 4 then
+            checkAndPurchasePetSlot()
+        end
         if maxZoneData.ZoneNumber >= 8 then
             checkAndPurchaseEggSlot()
         end
-        checkAndPurchasePetSlot()
-        checkAndPurchaseUpgrades()
+        if maxZoneData.ZoneNumber > 12 then
+            checkAndRedeemGift()
+        end
+        checkAndRedeemRankRewards()
+
 
         task.wait(getgenv().autoWorldConfig.PURCHASE_CHECK_DELAY)
     end
