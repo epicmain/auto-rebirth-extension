@@ -1,5 +1,5 @@
 loadstring(game:HttpGet("https://raw.githubusercontent.com/fdvll/pet-simulator-99/main/waitForGameLoad.lua"))()
-print("rebirth startedxx.")
+print("rebirth started. W")
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Library = ReplicatedStorage:WaitForChild("Library")
@@ -30,6 +30,8 @@ local originalPosition
 
 local startAutoHatchEggDelay = tick()
 local autoHatchEggDelay = 120
+local eggSlotMaxed = false
+local petEquipSlotMaxed = false
 
 
 -- vvv Egg hatching variables vvv
@@ -75,7 +77,7 @@ local unconsumedPotions -- Diamonds, Treasure Hunter, Damage, Lucky, Coins ... W
 -- vvv Enchant variables vvv
 local enchantCmds = require(Client.EnchantCmds)
 local enchantEquipTimeStart = tick()
-local equipEnchantDelay = 0
+local equipEnchantDelay = 60
 local enchantIdToName
 local enchants = {
     [1] = "Tap Power", 
@@ -443,6 +445,8 @@ local function checkAndPurchaseEggSlot()
                 print("Purchased egg slot " .. tostring(currentEggSlots))
                 task.wait(1)
                 LocalPlayer.Character.HumanoidRootPart.CFrame = originalPosition
+            else
+                eggSlotMaxed = true
             end
         end
         eggSlotTimeStart = tick() -- restart timer
@@ -708,7 +712,7 @@ local function checkAndRedeemRankRewards()
 end
 
 
-local function checkAndUseFruits()
+local function checkAndConsumeFruits()
     for fruitId, tbl in pairs(fruitInventory) do
         task.wait(0.5)
         if fruitCmds.GetActiveFruits()[tbl.id] ~= nil then
@@ -857,15 +861,19 @@ task.spawn(function()
             teleportToMaxZone()
             startAutoHatchEggDelay = tick()
         end
-        checkAndEquipBestSpecifiedEnchants()
-        checkAndRedeemGift()
+
+        if (inventory.Fruit == nil and inventory.Enchant == nil and inventory.Potion == nil) == false then
+            checkAndEquipBestSpecifiedEnchants()
+            checkAndRedeemGift()
+            checkAndConsumeFruits()
+            checkAndConsumeGifts()
+            checkAndConsumeToys()
+            checkAndConsumePotions()
+        end
+        
         checkAndRedeemRankRewards()
-        checkAndUseFruits()
-        checkAndConsumeToys()
-        checkAndConsumePotions()
         checkAndPurchaseEggSlot()
         checkAndPurchasePetSlot()
-        checkAndConsumeGifts()
         checkAndPurchaseUpgrades()
 
         task.wait(getgenv().autoWorldConfig.PURCHASE_CHECK_DELAY)
@@ -873,3 +881,5 @@ task.spawn(function()
 end)
 
 teleportToMaxZone()
+
+
