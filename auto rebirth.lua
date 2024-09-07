@@ -1,5 +1,5 @@
 loadstring(game:HttpGet("https://raw.githubusercontent.com/fdvll/pet-simulator-99/main/waitForGameLoad.lua"))()
-print("rebirth started. xxxx")
+print("rebirth started. xd")
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Library = ReplicatedStorage:WaitForChild("Library")
@@ -493,8 +493,10 @@ end
 local function findUnconsumedPotions()
     unconsumedPotions = {"Diamonds", "Treasure Hunter", "Damage", "Lucky", "Coins"}
     for i = #unconsumedPotions, 1, -1 do -- Loop backward so index wouldnt mess up when removing
-        if len(potionCmds.GetActivePotions()[unconsumedPotions[i]]) > 0 then
-            table.remove(unconsumedPotions, i)
+        if not (potionCmds.GetActivePotions()[unconsumedPotions[i]] == nil) then
+            if len(potionCmds.GetActivePotions()[unconsumedPotions[i]]) > 0 then
+                table.remove(unconsumedPotions, i)
+            end
         end
     end
 end
