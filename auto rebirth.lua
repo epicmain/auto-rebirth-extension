@@ -1,5 +1,5 @@
 loadstring(game:HttpGet("https://raw.githubusercontent.com/fdvll/pet-simulator-99/main/waitForGameLoad.lua"))()
-print("rebirth started.")
+print("rebirth started gus.")
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Library = ReplicatedStorage:WaitForChild("Library")
@@ -870,9 +870,13 @@ task.spawn(function()
             checkAndConsumeToys()
             checkAndConsumePotions()
         end
-        
+
         checkAndRedeemRankRewards()
-        checkAndPurchaseEggSlot()
+
+        local zoneName, maxZoneData = zoneCmds.GetMaxOwnedZone()
+        if maxZoneData.ZoneNumber >= 8 then
+            checkAndPurchaseEggSlot()
+        end
         checkAndPurchasePetSlot()
         checkAndPurchaseUpgrades()
 
