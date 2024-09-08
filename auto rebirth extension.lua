@@ -25,7 +25,6 @@ local function activateUlti()
     -- activate ultimate
     local ultiActive = require(RepStor.Library.Client.UltimateCmds).IsCharged("Ground Pound")
     if ultiActive then
-        print("Using Ultimate...")
         getsenv(game:GetService("Players").LocalPlayer.PlayerScripts.Scripts.GUIs["Ultimates HUD"]).activateUltimate()
     end
 end
