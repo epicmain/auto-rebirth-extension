@@ -1,5 +1,5 @@
 loadstring(game:HttpGet("https://raw.githubusercontent.com/fdvll/pet-simulator-99/main/waitForGameLoad.lua"))()
-print("rebirth started 01")
+print("rebirth started.")
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Library = ReplicatedStorage:WaitForChild("Library")
@@ -882,6 +882,12 @@ end
 
 task.spawn(function()
     print("Getting best pet from Colors event.")
+    local requiredColorCoins = 0
+    if clientSaveGet.Rebirths > 1 then
+        requiredColorCoins = 25000
+    else
+        requiredColorCoins = 2500
+    end
     while true do
         task.wait()
         if #game:GetService("Workspace")["__THINGS"]["__INSTANCE_CONTAINER"].Active:GetChildren() == 0 then -- not inside ColorsInstance
@@ -891,7 +897,7 @@ task.spawn(function()
             -- teleport to middle of breakzone 1
             LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(2376.07324, 13.4414673, -9301.24805, 1, 0, 0, 0, 1, 0, 0, 0, 1) + Vector3.new(0, 10, 0)
             
-        elseif require(game:GetService("ReplicatedStorage").Library.Client.CurrencyCmds).Get("ColorCoins") >= 25000 then
+        elseif require(game:GetService("ReplicatedStorage").Library.Client.CurrencyCmds).Get("ColorCoins") >= requiredColorCoins then
             getFirstEventEggId()
             -- teleport to egg 1
             LocalPlayer.Character.HumanoidRootPart.CFrame = game:GetService("Workspace")["__THINGS"].CustomEggs[bestFirstEventEggId].Center.CFrame + Vector3.new(0, 10, 0)
