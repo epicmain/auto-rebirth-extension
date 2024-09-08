@@ -1,5 +1,5 @@
 loadstring(game:HttpGet("https://raw.githubusercontent.com/fdvll/pet-simulator-99/main/waitForGameLoad.lua"))()
-print("besteggadata update1.")
+print("rebirth startedxx.")
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Library = ReplicatedStorage:WaitForChild("Library")
@@ -706,19 +706,21 @@ end
 
 
 local function checkAndConsumeFruits()
-    for fruitId, tbl in pairs(fruitInventory) do
-        task.wait(0.5)
-        if fruitCmds.GetActiveFruits()[tbl.id] ~= nil then
-            if (#fruitCmds.GetActiveFruits()[tbl.id]["Normal"] < maxFruitQueue) and (tbl._am ~= nil) then
-                print("Continue consuming ", tbl.id)
-                if tbl._am < fruitCmds.GetMaxConsume(fruitId) then
-                    fruitCmds.Consume(fruitId, tonumber(tbl._am))
-                else
-                    fruitCmds.Consume(fruitId, fruitCmds.GetMaxConsume(fruitId))
+    if fruitInventory ~= nil then
+        for fruitId, tbl in pairs(fruitInventory) do
+            task.wait(0.5)
+            if fruitCmds.GetActiveFruits()[tbl.id] ~= nil then
+                if (#fruitCmds.GetActiveFruits()[tbl.id]["Normal"] < maxFruitQueue) and (tbl._am ~= nil) then
+                    print("Continue consuming ", tbl.id)
+                    if tbl._am < fruitCmds.GetMaxConsume(fruitId) then
+                        fruitCmds.Consume(fruitId, tonumber(tbl._am))
+                    else
+                        fruitCmds.Consume(fruitId, fruitCmds.GetMaxConsume(fruitId))
+                    end
                 end
+            else
+                fruitCmds.Consume(fruitId)
             end
-        else
-            fruitCmds.Consume(fruitId)
         end
     end
 end
