@@ -1,5 +1,5 @@
 loadstring(game:HttpGet("https://raw.githubusercontent.com/fdvll/pet-simulator-99/main/waitForGameLoad.lua"))()
-print("rebirth startedxx.")
+print("rebirth started updated inventory.")
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Library = ReplicatedStorage:WaitForChild("Library")
@@ -727,6 +727,11 @@ end
 
 
 local function checkAndConsumeGifts()
+    if type(inventory.Misc) ~= "table" then
+        print("Error: inventory.Misc is not a table")
+        return
+    end
+    
     for itemId, value in pairs(inventory.Misc) do
         if string.find(value.id:lower(), "bundle") or string.find(value.id:lower(), "gift bag") or (value.id == "Mini Chest") then
             if not value._am then
