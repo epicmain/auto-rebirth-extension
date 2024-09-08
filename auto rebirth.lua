@@ -1,5 +1,5 @@
 loadstring(game:HttpGet("https://raw.githubusercontent.com/fdvll/pet-simulator-99/main/waitForGameLoad.lua"))()
-print("rebirth started.")
+print("besteggadata update.")
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Library = ReplicatedStorage:WaitForChild("Library")
@@ -631,17 +631,14 @@ local function autoHatchWithoutAnimation()
 end
 
 
--- local function getBestEggData()
---     bestEgg = clientSaveGet.MaximumAvailableEgg
---     eggData = require(Library.Util.EggsUtil).GetByNumber(bestEgg) -- gets eggData.name, .eggNumber
--- end
-
-
-local function teleportAndHatch()
+local function getBestEggData()
     bestEgg = clientSaveGet.MaximumAvailableEgg
     eggData = require(Library.Util.EggsUtil).GetByNumber(bestEgg) -- gets eggData.name, .eggNumber
     print("New obtained eggData: ", eggData.name, " (", eggData.eggNumber, ")")
-    
+end
+
+
+local function teleportAndHatch()
     originalPosition = LocalPlayer.Character.HumanoidRootPart.CFrame
     -- Teleport to Best Egg
     for _, v in pairs(game:GetService("Workspace").__THINGS.Eggs.Main:GetChildren()) do
@@ -832,7 +829,7 @@ end
 
 
 task.spawn(function()
-    task.wait(5)
+    teleportToMaxZone()
     print("Starting zone purchase service")
     while unfinished do
         local nextZoneName, nextZoneData = zoneCmds.GetNextZone()
@@ -856,6 +853,8 @@ task.spawn(function()
             teleportToMaxZone()
             startAutoHatchEggDelay = tick()
         end
+
+        getBestEggData()
         if (tick() - startAutoHatchEggDelay) >= autoHatchEggDelay and eggHatchedBefore ~= eggData.eggNumber then
             teleportAndHatch()
             startAutoHatchEggDelay = tick()
@@ -896,6 +895,5 @@ task.spawn(function()
     end
 end)
 
-teleportToMaxZone()  -- delay before starting parallel functions.
 
 
