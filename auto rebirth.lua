@@ -909,7 +909,7 @@ task.spawn(function()
     LocalPlayer.Character.HumanoidRootPart.CFrame = game:GetService("Workspace")["__THINGS"].Instances.ColorsInstance.Teleports.Leave.CFrame
     print("Done getting pets from event")
     task.wait(1)
-    while #game:GetService("Workspace")["__THINGS"]["__INSTANCE_CONTAINER"].Active:GetChildren() > 0 then
+    while #game:GetService("Workspace")["__THINGS"]["__INSTANCE_CONTAINER"].Active:GetChildren() > 0 do
         task.wait(0.1)
     end
     
