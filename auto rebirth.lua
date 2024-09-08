@@ -1,5 +1,5 @@
 loadstring(game:HttpGet("https://raw.githubusercontent.com/fdvll/pet-simulator-99/main/waitForGameLoad.lua"))()
-print("rebirth startedxxxxxxxx12.")
+print("rebirth started peep.")
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Library = ReplicatedStorage:WaitForChild("Library")
@@ -100,6 +100,11 @@ local bestEnchants = {
 local upgradeCmds = require(game:GetService("ReplicatedStorage").Library.Client.UpgradeCmds)
 local MAX_UPGRADE_GEM = 20000
 -- ^^^ Upgrades variables ^^^
+
+-- vvv Colors Event variables vvv
+local bestFirstEventEggId
+local timeStartColorsHatch = tick()
+-- ^^^ Colors Event variables ^^^
 
 local buffCmds = require(Client.BuffCmds)
 
@@ -613,12 +618,8 @@ local function checkAndPurchaseUpgrades()
 end
 
 
-local function autoHatchWithoutAnimation()
-    -- disable egg hatch animation
-    hookfunction(getsenv(game.Players.LocalPlayer.PlayerScripts.Scripts.Game["Egg Opening Frontend"]).PlayEggAnimation, function()
-        return
-    end)
-
+local function autoHatchEgg()
+    currentMaxHatch = require(Client.EggCmds).GetMaxHatch()
     -- auto hatch with delay
     if (tick() - timeStart) >= fastestHatchTime then
         timeStart = tick()
@@ -651,7 +652,7 @@ local function teleportAndHatch()
 
     -- Hatch eggs
     for i=1, 11 do  -- hatch 10 times
-        autoHatchWithoutAnimation()
+        autoHatchEgg()
         task.wait(fastestHatchTime)
     end
     eggHatchedBefore = eggData.eggNumber
@@ -787,7 +788,54 @@ local function checkAndConsumeToys()
         end
     end
 end
+
+
+local function getFirstEventEggId()
+    -- if found "Highlight", delete it so it will run eggid for loop smoothly
+    if game:GetService("Workspace")["__THINGS"].CustomEggs:FindFirstChild("Highlight") then
+        game:GetService("Workspace")["__THINGS"].CustomEggs.Highlight:Destroy()
+    end
+
+    for _, EggId in pairs(Workspace["__THINGS"].CustomEggs:GetChildren()) do
+        for x, y in pairs(Workspace["__THINGS"].CustomEggs[EggId.name].PriceHUD:GetChildren()) do
+            if y.name == "PriceHUD" then
+                for z, c in pairs(Workspace["__THINGS"].CustomEggs[EggId.name].PriceHUD.PriceHUD:GetChildren()) do
+                    if c.name == "Color Coins" then
+                        for v, b in pairs(Workspace["__THINGS"].CustomEggs[EggId.name].PriceHUD.PriceHUD[c.name]:GetChildren()) do
+                            if b.name == "Amount" then
+                                if Workspace["__THINGS"].CustomEggs[EggId.name].PriceHUD.PriceHUD[c.name].Amount.Text == "250" then
+                                    bestFirstEventEggId = EggId.name
+                                    return
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
     
+
+local function AutoHatchEventEgg()
+    currentMaxHatch = require(Client.EggCmds).GetMaxHatch()
+    -- auto hatch with delay
+    if (tick() - timeStartColorsHatch) >= fastestHatchTime then
+        timeStartColorsHatch = tick()
+        if currentMaxHatch <= maxHatchAmount then
+            ReplicatedStorage.Network:WaitForChild("CustomEggs_Hatch"):InvokeServer(bestFirstEventEggId, currentMaxHatch)
+        else
+            ReplicatedStorage.Network:WaitForChild("CustomEggs_Hatch"):InvokeServer(bestFirstEventEggId, maxHatchAmount)
+        end
+    end
+end
+
+
+-- disable egg hatch animation
+hookfunction(getsenv(game.Players.LocalPlayer.PlayerScripts.Scripts.Game["Egg Opening Frontend"]).PlayEggAnimation, function()
+    return
+end)
+
 
 -- Pet speed 200%
 require(Client.PlayerPet).CalculateSpeedMultiplier = function(...)
@@ -833,6 +881,35 @@ end
 
 
 task.spawn(function()
+    print("Getting best pet from Colors event.")
+    while true do
+        task.wait()
+        if #game:GetService("Workspace")["__THINGS"]["__INSTANCE_CONTAINER"].Active:GetChildren() == 0 then -- not inside ColorsInstance
+            -- teleport to ColorsInstace
+            LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(179.721741, 19.4359455, -139.812775, -0.0521612167, 0, 0.99863869, 0, 1, 0, -0.99863869, 0, -0.0521612167) + Vector3.new(0, 1, 0)
+            task.wait(5)
+            -- teleport to middle of breakzone 1
+            LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(2376.07324, 13.4414673, -9301.24805, 1, 0, 0, 0, 1, 0, 0, 0, 1) + Vector3.new(0, 10, 0)
+            
+        elseif require(game:GetService("ReplicatedStorage").Library.Client.CurrencyCmds).Get("ColorCoins") >= 25000 then
+            getFirstEventEggId()
+            -- teleport to egg 1
+            LocalPlayer.Character.HumanoidRootPart.CFrame = game:GetService("Workspace")["__THINGS"].CustomEggs[bestFirstEventEggId].Center.CFrame + Vector3.new(0, 10, 0)
+            -- Hatch eggs
+            for i=1, 11 do  -- hatch 10 times
+                print("Hatching egg ", i)
+                AutoHatchEventEgg()
+                task.wait(fastestHatchTime)
+            end
+            print("Done Hatching Colors Egg...")
+            break
+        end
+    end
+    
+    LocalPlayer.Character.HumanoidRootPart.CFrame = game:GetService("Workspace")["__THINGS"].Instances.ColorsInstance.Teleports.Leave.CFrame
+    print("Done getting pets from event")
+    
+    -- Start normal rebirth script
     teleportToMaxZone()
     print("Starting zone purchase service")
     while unfinished do
@@ -866,7 +943,7 @@ task.spawn(function()
 
         if not (inventory.Fruit == nil) then
             checkAndConsumeFruits()
-            checkAndConsumeGifts() -- misc
+            pcall(checkAndConsumeGifts) -- misc
             checkAndConsumeToys() -- misc
         end
         if not (inventory.Potion == nil) then
