@@ -307,12 +307,9 @@ end
 
 local function teleportToMaxZone()
     print("in teleportToMaxZone()")
-    bestEgg = clientSaveGet.MaximumAvailableEgg
-    eggData = require(Library.Util.EggsUtil).GetByNumber(bestEgg) -- gets eggData.name, .eggNumber
 
     local zoneName, maxZoneData = zoneCmds.GetMaxOwnedZone()
-    print(zoneName)
-    print(currentZone)
+    print("Teleporting to: ", zoneName)
     while currentZone == zoneName do
         zoneName, maxZoneData = zoneCmds.GetMaxOwnedZone()
         task.wait()
@@ -641,6 +638,10 @@ end
 
 
 local function teleportAndHatch()
+    bestEgg = clientSaveGet.MaximumAvailableEgg
+    eggData = require(Library.Util.EggsUtil).GetByNumber(bestEgg) -- gets eggData.name, .eggNumber
+    print("New obtained eggData: ", eggData.name, " (", eggData.eggNumber, ")")
+    
     originalPosition = LocalPlayer.Character.HumanoidRootPart.CFrame
     -- Teleport to Best Egg
     for _, v in pairs(game:GetService("Workspace").__THINGS.Eggs.Main:GetChildren()) do
@@ -895,5 +896,6 @@ task.spawn(function()
     end
 end)
 
-teleportToMaxZone()
+teleportToMaxZone()  -- delay before starting parallel functions.
+
 
