@@ -1,5 +1,5 @@
 loadstring(game:HttpGet("https://raw.githubusercontent.com/fdvll/pet-simulator-99/main/waitForGameLoad.lua"))()
-print("besteggadata update.")
+print("besteggadata update1.")
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Library = ReplicatedStorage:WaitForChild("Library")
@@ -634,7 +634,7 @@ end
 local function getBestEggData()
     bestEgg = clientSaveGet.MaximumAvailableEgg
     eggData = require(Library.Util.EggsUtil).GetByNumber(bestEgg) -- gets eggData.name, .eggNumber
-    print("New obtained eggData: ", eggData.name, " (", eggData.eggNumber, ")")
+    -- print("New obtained eggData: ", eggData.name, " (", eggData.eggNumber, ")")
 end
 
 
