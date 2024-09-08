@@ -1,5 +1,5 @@
 loadstring(game:HttpGet("https://raw.githubusercontent.com/fdvll/pet-simulator-99/main/waitForGameLoad.lua"))()
-print("rebirth started peep.")
+print("rebirth started.")
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Library = ReplicatedStorage:WaitForChild("Library")
@@ -906,7 +906,7 @@ task.spawn(function()
         end
     end
     
-    LocalPlayer.Character.HumanoidRootPart.CFrame = game:GetService("Workspace")["__THINGS"].Instances.ColorsInstance.Teleports.Leave.CFrame
+    LocalPlayer.Character.HumanoidRootPart.CFrame = game:GetService("Workspace")["__THINGS"].Instances.ColorsInstance.Teleports.Leave.CFrame + Vector3.new(0, 10, 0)
     print("Done getting pets from event")
     
     -- Start normal rebirth script
