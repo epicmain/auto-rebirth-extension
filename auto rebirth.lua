@@ -1,5 +1,5 @@
 loadstring(game:HttpGet("https://raw.githubusercontent.com/fdvll/pet-simulator-99/main/waitForGameLoad.lua"))()
-print("rebirth startedem.")
+print("rebirth started u .")
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Library = ReplicatedStorage:WaitForChild("Library")
@@ -893,6 +893,7 @@ task.spawn(function()
     end
     while true do
         task.wait()
+        local playerDistanceFromBreakZone = Vector3.new(2376.07324, 13.4414673, -9301.24805) - game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame.Position
         if #game:GetService("Workspace")["__THINGS"]["__INSTANCE_CONTAINER"].Active:GetChildren() == 0 then -- not inside ColorsInstance
             -- teleport to ColorsInstace
             LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(179.721741, 19.4359455, -139.812775, -0.0521612167, 0, 0.99863869, 0, 1, 0, -0.99863869, 0, -0.0521612167) + Vector3.new(0, 1, 0)
@@ -912,6 +913,8 @@ task.spawn(function()
             end
             print("Done Hatching Colors Egg...")
             break
+        elseif playerDistanceFromBreakZone > 50 then 
+            LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(2376.07324, 13.4414673, -9301.24805, 1, 0, 0, 0, 1, 0, 0, 0, 1) + Vector3.new(0, 10, 0)
         end
     end
     
