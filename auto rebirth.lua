@@ -1,5 +1,5 @@
 loadstring(game:HttpGet("https://raw.githubusercontent.com/fdvll/pet-simulator-99/main/waitForGameLoad.lua"))()
-print("rebirth started.")
+print("rebirth startedem.")
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Library = ReplicatedStorage:WaitForChild("Library")
@@ -867,10 +867,13 @@ Workspace.__THINGS:FindFirstChild("Orbs").ChildAdded:Connect(function(orb)
     end
 end)
 
+
 ReplicatedStorage:WaitForChild("Network"):WaitForChild("ForeverPacks: Claim Free"):InvokeServer("Default")  -- collect free foreverpack
+
 if not clientSaveGet.PickedStarterPet then
     print("New Account Detected... Picking Starter Pets.")
     ReplicatedStorage:WaitForChild("Network"):WaitForChild("Pick Starter Pets"):InvokeServer(unpack({"Cat", "Dog"}))
+    task.wait(5)
 end 
 
 
@@ -883,7 +886,7 @@ end
 task.spawn(function()
     print("Getting best pet from Colors event.")
     local requiredColorCoins = 0
-    if clientSaveGet.Rebirths > 1 then
+    if clientSaveGet.Rebirths > 0 then
         requiredColorCoins = 25000
     else
         requiredColorCoins = 2500
