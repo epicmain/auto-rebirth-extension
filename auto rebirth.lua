@@ -1,5 +1,5 @@
 loadstring(game:HttpGet("https://raw.githubusercontent.com/fdvll/pet-simulator-99/main/waitForGameLoad.lua"))()
-print("rebirth started u .")
+print("rebirth started.")
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Library = ReplicatedStorage:WaitForChild("Library")
@@ -913,13 +913,14 @@ task.spawn(function()
             end
             print("Done Hatching Colors Egg...")
             break
-        elseif playerDistanceFromBreakZone > 50 then 
+        elseif playerDistanceFromBreakZone.X > 50 then 
             LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(2376.07324, 13.4414673, -9301.24805, 1, 0, 0, 0, 1, 0, 0, 0, 1) + Vector3.new(0, 10, 0)
         end
     end
     
     LocalPlayer.Character.HumanoidRootPart.CFrame = game:GetService("Workspace")["__THINGS"].Instances.ColorsInstance.Teleports.Leave.CFrame
     print("Done getting pets from event")
+    startAutoHatchEggDelay = tick()
     task.wait(1)
     while #game:GetService("Workspace")["__THINGS"]["__INSTANCE_CONTAINER"].Active:GetChildren() > 0 do
         task.wait(0.1)
