@@ -37,8 +37,8 @@ Lighting.FogStart = 0
 game:GetService("Lighting"):ClearAllChildren()
 print("Clearing lightnings")
 
-sethiddenproperty(Lighting, "Technology", 2)
-sethiddenproperty(Terrain, "Decoration", false)
+-- sethiddenproperty(Lighting, "Technology", 2)
+-- sethiddenproperty(Terrain, "Decoration", false)
 
 
 local function clearTextures(v)
