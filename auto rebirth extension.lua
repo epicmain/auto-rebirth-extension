@@ -108,8 +108,8 @@ pcall(function()
     end
 
     -- Disables 3D Rendering (Whitescreen)
-    local RunService = game:GetService("RunService")
-    RunService:Set3dRenderingEnabled(false)
+    -- local RunService = game:GetService("RunService")
+    -- RunService:Set3dRenderingEnabled(false)
     print("after coregui runservice")
 end)
 
