@@ -94,10 +94,10 @@ local equipEnchantDelay = 60
 local enchantIdToName
 local enchants = {
     [1] = "Tap Power", 
-    [2] = "Coins", 
-    [3] = "Tap Power", 
-    [4] = "Coins", 
-    [5] = "Treasure Hunter"
+    [2] = "Strong Pets", 
+    [3] = "Treasure Hunter", 
+    [4] = "Treasure Hunter", 
+    [5] = "Diamonds"
 }
 
 local bestEnchants = {
