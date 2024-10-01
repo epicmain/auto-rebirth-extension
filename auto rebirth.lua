@@ -1912,8 +1912,15 @@ while unfinished do
 end
 
 
+
 while true do
     task.wait()
+    if Active:FindFirstChild("StairwayToHeaven") then 
+        game:GetService("Workspace")["__THINGS"].Instances.StairwayToHeaven.Teleports.Leave
+        task.wait(5)
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/fdvll/pet-simulator-99/main/waitForGameLoad.lua"))()
+        teleportToMaxZone()
+    end
     for goalsNum, tbl in clientSaveGet.Goals do
         task.wait(1)
         goldToRainbow = false
@@ -2074,7 +2081,6 @@ while true do
                 upgradePotion()
             else
                 buyVendingMachine()
-                teleportLatestOriginalPos()
             end
 
         -- Upgrading
