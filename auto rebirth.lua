@@ -514,7 +514,7 @@ local function teleportToMaxZone()
     if maxZoneData.ZoneNumber >= getgenv().autoWorldConfig.ZONE_TO_REACH and rankCmds.GetMaxRank() >= getgenv().autoWorldConfig.RANK_TO_REACH and clientSaveGet.Rebirths >= getgenv().autoWorldConfig.REBIRTH_TO_REACH then
         print("Reached selected zone, rebirth and rank")
         game:GetService("ReplicatedStorage"):WaitForChild("Network"):WaitForChild("Pets_UnequipAll"):FireServer()
-        task.wait(1)
+        task.wait(2)
         require(game:GetService("ReplicatedStorage").Library.Client.PetCmds).Restore()
         DeleteMapTextures(map)
         print("Pets Restored.")
