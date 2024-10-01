@@ -1912,11 +1912,12 @@ while unfinished do
 end
 
 
-
 while true do
     task.wait()
+    print('ee')
     if Active:FindFirstChild("StairwayToHeaven") then 
-        game:GetService("Workspace")["__THINGS"].Instances.StairwayToHeaven.Teleports.Leave
+        print('sxs')
+        game.Players.LocalPlayer.Character:WaitForChild("HumanoidRootPart").CFrame = game:GetService("Workspace")["__THINGS"].Instances.StairwayToHeaven.Teleports.Leave
         task.wait(5)
         loadstring(game:HttpGet("https://raw.githubusercontent.com/fdvll/pet-simulator-99/main/waitForGameLoad.lua"))()
         teleportToMaxZone()
