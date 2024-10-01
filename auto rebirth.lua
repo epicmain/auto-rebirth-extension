@@ -1176,6 +1176,7 @@ local function buyVendingMachine()
             LocalPlayer.Character.HumanoidRootPart.CFrame = vendingOrBossChestZonePath.INTERACT.Machines[vendingMachineName].PadGlow.CFrame + Vector3.new(0, 10, 0)
             task.wait(1)
             game:GetService("ReplicatedStorage"):WaitForChild("Network"):WaitForChild("VendingMachines_Purchase"):InvokeServer(vendingMachineName,vendingMachineStock)
+            teleportLatestOriginalPos()
 
         elseif checkType(questId) == "COLLECT_POTION" and 
         (vendingMachineName == "PotionVendingMachine1" or vendingMachineName == "PotionVendingMachine2") and 
@@ -1188,6 +1189,7 @@ local function buyVendingMachine()
             LocalPlayer.Character.HumanoidRootPart.CFrame = vendingOrBossChestZonePath.INTERACT.Machines[vendingMachineName].PadGlow.CFrame + Vector3.new(0, 10, 0)
             task.wait(1)
             game:GetService("ReplicatedStorage"):WaitForChild("Network"):WaitForChild("VendingMachines_Purchase"):InvokeServer(vendingMachineName,vendingMachineStock)
+            teleportLatestOriginalPos()
 
         elseif checkType(questId) == "COLLECT_ENCHANT" and 
         (vendingMachineName == "EnchantVendingMachine1" or vendingMachineName == "EnchantVendingMachine2") and 
@@ -1200,9 +1202,9 @@ local function buyVendingMachine()
             LocalPlayer.Character.HumanoidRootPart.CFrame = vendingOrBossChestZonePath.INTERACT.Machines[vendingMachineName].PadGlow.CFrame + Vector3.new(0, 10, 0)
             task.wait(1)
             game:GetService("ReplicatedStorage"):WaitForChild("Network"):WaitForChild("VendingMachines_Purchase"):InvokeServer(vendingMachineName,vendingMachineStock)
+            teleportLatestOriginalPos()
         end
     end
-    teleportLatestOriginalPos()
 end
 
 
