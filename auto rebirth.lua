@@ -8,9 +8,28 @@ getgenv().autoWorldConfig = {
 -- Max Zone For World 1: 99
 -- Max Zone For World 2: 124
 
-loadstring(game:HttpGet("https://raw.githubusercontent.com/fdvll/pet-simulator-99/main/waitForGameLoad.lua"))()
+-- VVV Wait for game load VVV
+repeat
+    task.wait()
+until game:IsLoaded()
+
+repeat
+    task.wait()
+until game.PlaceId ~= nil
+
+repeat
+    task.wait()
+until game:GetService("Players").LocalPlayer and game:GetService("Players").LocalPlayer.Character and game:GetService("Players").LocalPlayer.Character.HumanoidRootPart
+
+repeat
+    task.wait()
+until game:GetService("Workspace").__THINGS and game:GetService("Workspace").__DEBRIS
+
+print("[CLIENT] Loaded Game")
+-- ^^^ Wait for game load ^^^
+
+
 loadstring(game:HttpGet("https://raw.githubusercontent.com/fdvll/pet-simulator-99/main/antiStaff.lua"))()
-print("rank started.")
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Library = ReplicatedStorage:WaitForChild("Library")
@@ -18,6 +37,26 @@ local Client = Library.Client
 local LocalPlayer = game:GetService("Players").LocalPlayer
 local Workspace = game:GetService("Workspace")
 local Network = game:GetService("ReplicatedStorage"):WaitForChild("Network")
+local myHumanoidRootPart = LocalPlayer.Character.HumanoidRootPart
+local Active = game:GetService("Workspace").__THINGS.__INSTANCE_CONTAINER.Active
+repeat
+    task.wait()
+    if Active:FindFirstChild("Fishing") then
+        myHumanoidRootPart.CFrame = game:GetService("Workspace").__THINGS.Instances.Fishing.Teleports.Leave.CFrame + Vector3.new(0, 5, 0)
+    elseif Active:FindFirstChild("Digsite") then
+        myHumanoidRootPart.CFrame = game:GetService("Workspace").__THINGS.Instances.Digsite.Teleports.Leave.CFrame + Vector3.new(0, 5, 0)
+    elseif Active:FindFirstChild("StairwayToHeaven") then
+        myHumanoidRootPart.CFrame = game:GetService("Workspace").__THINGS.Instances.StairwayToHeaven.Teleports.Leave.CFrame + Vector3.new(0, 5, 0)
+    end
+until #Active:GetChildren() <= 0
+
+local map = Workspace:WaitForChild("Map")
+local PlaceId = game.PlaceId
+if PlaceId == 8737899170 then
+    map = Workspace.Map
+elseif PlaceId == 16498369169 then
+    map = Workspace.Map2
+end
 
 
 local petCmds = require(Client.PetCmds)
@@ -36,7 +75,7 @@ local breakableCmds = require(Client.BreakableCmds)
 local randomEventCmds = require(Client.RandomEventCmds)
 local flexibleFlagCmds = require(Client.FlexibleFlagCmds)
 
-local myHumanoidRootPart = LocalPlayer.Character.HumanoidRootPart
+
 local clientSaveGet = require(Client.Save).Get()
 local inventory = clientSaveGet.Inventory
 local unfinished = true
@@ -128,16 +167,8 @@ local MAX_UPGRADE_GEM = 20000
 -- ^^^ Upgrades variables ^^^
 
 
-local Active = game:GetService("Workspace").__THINGS.__INSTANCE_CONTAINER.Active
 local fishingOptimized = false
 
-local map = Workspace.Map
-local PlaceId = game.PlaceId
-if PlaceId == 8737899170 then
-    map = Workspace.Map
-elseif PlaceId == 16498369169 then
-    map = Workspace.Map2
-end
 
 local maxHatchAmount = 20
 local inventory = clientSaveGet.Inventory
@@ -1853,7 +1884,7 @@ task.spawn(function()
 
         if Active:FindFirstChild("StairwayToHeaven") then 
             print('sxs')
-            myHumanoidRootPart.CFrame = game:GetService("Workspace")["__THINGS"].Instances.StairwayToHeaven.Teleports.Leave.CFrame
+            myHumanoidRootPart.CFrame = game:GetService("Workspace")["__THINGS"].Instances.StairwayToHeaven.Teleports.Leave.CFrame + Vector3.new(0, 5, 0)
             task.wait(5)
             currentZone = nil
             teleportToMaxZone()
@@ -1862,7 +1893,7 @@ task.spawn(function()
 end)
 
 
-print('here1')
+print("rank started.")
 teleportToMaxZone()
 
 startAutoHatchEggDelay = tick()
