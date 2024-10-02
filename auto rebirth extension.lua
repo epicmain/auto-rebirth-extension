@@ -1,23 +1,3 @@
--- VVV Wait for game load VVV
-repeat
-    task.wait()
-until game:IsLoaded()
-
-repeat
-    task.wait()
-until game.PlaceId ~= nil
-
-repeat
-    task.wait()
-until game:GetService("Players").LocalPlayer and game:GetService("Players").LocalPlayer.Character and game:GetService("Players").LocalPlayer.Character.HumanoidRootPart
-
-repeat
-    task.wait()
-until game:GetService("Workspace").__THINGS and game:GetService("Workspace").__DEBRIS
-
-print("[CLIENT] Loaded Game")
--- ^^^ Wait for game load ^^^
-
 local Workspace = game:GetService("Workspace")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Library = ReplicatedStorage:WaitForChild("Library")
@@ -125,19 +105,19 @@ if settingsCmds.Get("PetSFX") == "On" then
     game:GetService("ReplicatedStorage"):WaitForChild("Network"):WaitForChild("Toggle Setting"):InvokeServer("PetSFX")
 end
 
-print("calling p function")
-pcall(function()
-    for i, v in pairs(game:GetService("CoreGui"):GetChildren()) do
-        if v:IsA("ScreenGui") then
-            v.Enabled = false
-        end
-    end
+-- print("calling p function")
+-- pcall(function()
+--     for i, v in pairs(game:GetService("CoreGui"):GetChildren()) do
+--         if v:IsA("ScreenGui") then
+--             v.Enabled = false
+--         end
+--     end
 
-    -- Disables 3D Rendering (Whitescreen)
-    -- local RunService = game:GetService("RunService")
-    -- RunService:Set3dRenderingEnabled(false)
-    print("after coregui runservice")
-end)
+--     -- Disables 3D Rendering (Whitescreen)
+--     -- local RunService = game:GetService("RunService")
+--     -- RunService:Set3dRenderingEnabled(false)
+--     print("after coregui runservice")
+-- end)
 
 print("screengui")
 for i,v in pairs(game.Players.LocalPlayer.PlayerGui:GetChildren()) do
