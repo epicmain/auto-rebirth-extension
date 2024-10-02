@@ -1,18 +1,44 @@
+-- VVV Wait for game load VVV
+repeat
+    task.wait()
+until game:IsLoaded()
+
+repeat
+    task.wait()
+until game.PlaceId ~= nil
+
+repeat
+    task.wait()
+until game:GetService("Players").LocalPlayer and game:GetService("Players").LocalPlayer.Character and game:GetService("Players").LocalPlayer.Character.HumanoidRootPart
+
+repeat
+    task.wait()
+until game:GetService("Workspace").__THINGS and game:GetService("Workspace").__DEBRIS
+
+print("[CLIENT] Loaded Game")
+-- ^^^ Wait for game load ^^^
+
 local Workspace = game:GetService("Workspace")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Library = ReplicatedStorage:WaitForChild("Library")
 local Client = Library:WaitForChild("Client")
 local LocalPlayer = game:GetService("Players").LocalPlayer
+local myHumanoidRootPart = LocalPlayer.Character.HumanoidRootPart
 
 local maxBreakableDistance = 50  -- 150 is max
 local zoneName = require(game:GetService("ReplicatedStorage").Library.Client.ZoneCmds).GetMaxOwnedZone()
 local normalOrChest
 local Active = game:GetService("Workspace")["__THINGS"]["__INSTANCE_CONTAINER"].Active
 
+repeat
+    task.wait()
+until #Active:GetChildren() <= 0
 
 local settingsCmds = require(Client.SettingsCmds)
 
-local map = Workspace.Map
+local map = Workspace:WaitForChild("Map")
+
+
 local PlaceId = game.PlaceId
 if PlaceId == 8737899170 then
     map = Workspace.Map
@@ -159,14 +185,13 @@ local function len(table)
 end
 
 local function tapAura()
-    local playerCFrame = LocalPlayer.Character:WaitForChild("HumanoidRootPart").CFrame
     local nearestBreakable = nil
     repeat 
         nearestBreakable = getsenv(LocalPlayer.PlayerScripts.Scripts.GUIs["Auto Tapper"]).GetNearestBreakable()
         task.wait()
     until nearestBreakable and nearestBreakable:GetModelCFrame()
 
-    local breakableDistance = (nearestBreakable:GetModelCFrame().Position - playerCFrame.Position).Magnitude
+    local breakableDistance = (nearestBreakable:GetModelCFrame().Position - myHumanoidRootPart.CFrame.Position).Magnitude
     -- auto break nearby breakables
     if breakableDistance <= maxBreakableDistance then
         ReplicatedStorage.Network["Breakables_PlayerDealDamage"]:FireServer(nearestBreakable.Name)
