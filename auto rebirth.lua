@@ -1947,6 +1947,14 @@ end
 while true do
     task.wait()
     pcall(function()
+        local zoneName, maxZoneData = zoneCmds.GetMaxOwnedZone()
+        if maxZoneData.ZoneNumber >= 4 then
+            checkAndPurchasePetSlot()
+        end
+        if maxZoneData.ZoneNumber >= 8 then
+            checkAndPurchaseEggSlot()
+        end
+
         for goalsNum, tbl in clientSaveGet.Goals do
             task.wait(1)
             goldToRainbow = false
