@@ -125,7 +125,7 @@ else
 end
 
 
-hookfunction(getsenv(game:GetService("Players").bridget1194.PlayerScripts.Scripts.Game.Breakables["Breakables Frontend"]).updateBreakable, function()
+hookfunction(getsenv(game:GetService("Players").LocalPlayer.PlayerScripts.Scripts.Game.Breakables["Breakables Frontend"]).updateBreakable, function()
     return
 end)
 
