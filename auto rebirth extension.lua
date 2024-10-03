@@ -43,9 +43,6 @@ Lighting.FogStart = 0
 game:GetService("Lighting"):ClearAllChildren()
 print("Clearing lightnings")
 
--- sethiddenproperty(Lighting, "Technology", 2)
--- sethiddenproperty(Terrain, "Decoration", false)
-
 
 local function clearTextures(v)
     if v:IsA("BasePart") and not v:IsA("MeshPart") then
@@ -80,13 +77,41 @@ local function clearTextures(v)
 end
 
 
-print("was here")
 for _, v in pairs(game:GetService("Workspace"):FindFirstChild("__THINGS"):GetChildren()) do
     if table.find({"Ornaments", "Ski Chairs", "ShinyRelics"}, v.Name) then
         v:Destroy()
     end
 end
---  "Pets", "Breakables", "RenderedEggs", "AnimatedBreakables"
+
+-- Pet speed 200%
+require(Client.PlayerPet).CalculateSpeedMultiplier = function(...)
+    return 200
+end
+
+
+for _, lootbag in pairs(Workspace.__THINGS:FindFirstChild("Lootbags"):GetChildren()) do
+    task.wait(0.2)
+    if lootbag then
+        ReplicatedStorage.Network:WaitForChild("Lootbags_Claim"):FireServer(unpack( { [1] = { [1] = lootbag.Name, }, } ))
+        lootbag:Destroy()
+    end
+end
+
+Workspace.__THINGS:FindFirstChild("Lootbags").ChildAdded:Connect(function(lootbag)
+    task.wait(0.2)
+    if lootbag then
+        ReplicatedStorage.Network:WaitForChild("Lootbags_Claim"):FireServer(unpack( { [1] = { [1] = lootbag.Name, }, } ))
+        lootbag:Destroy()
+    end
+end)
+
+Workspace.__THINGS:FindFirstChild("Orbs").ChildAdded:Connect(function(orb)
+    task.wait(0.2)
+    if orb then
+        ReplicatedStorage.Network:FindFirstChild("Orbs: Collect"):FireServer(unpack( { [1] = { [1] = tonumber(orb.Name), }, } ))
+        orb:Destroy()
+    end
+end)
 
 -- Settings toggling not working.
 print(require(Client.SettingsCmds).Get("PotatoMode"))
@@ -100,6 +125,15 @@ else
 end
 
 
+hookfunction(getsenv(game:GetService("Players").bridget1194.PlayerScripts.Scripts.Game.Breakables["Breakables Frontend"]).updateBreakable, function()
+    return
+end)
+
+hookfunction(require(game:GetService("ReplicatedStorage").Library.Client.PlayerPet).SetTarget, function()
+    return
+end)
+
+
 print("PetSFX")
 if settingsCmds.Get("PetSFX") == "On" then
     game:GetService("ReplicatedStorage"):WaitForChild("Network"):WaitForChild("Toggle Setting"):InvokeServer("PetSFX")
@@ -107,6 +141,8 @@ end
 
 print("calling p function")
 pcall(function()
+    game:GetService("Workspace"):WaitForChild("ALWAYS_RENDERING"):Destroy()
+
     for i, v in pairs(game:GetService("CoreGui"):GetChildren()) do
         if v:IsA("ScreenGui") then
             v.Enabled = false
@@ -117,6 +153,9 @@ pcall(function()
     -- local RunService = game:GetService("RunService")
     -- RunService:Set3dRenderingEnabled(false)
     print("after coregui runservice")
+    
+    sethiddenproperty(Lighting, "Technology", 2)
+    sethiddenproperty(Terrain, "Decoration", false)
 end)
 
 print("screengui")
@@ -125,6 +164,13 @@ for i,v in pairs(game.Players.LocalPlayer.PlayerGui:GetChildren()) do
         v.Enabled = false
     end
 end
+
+for i,v in pairs(game.Players.LocalPlayer.PlayerGui._MACHINES:GetChildren()) do
+    if v:IsA("ScreenGui") then
+        v.Enabled = false
+    end
+end
+
 
 -- Clearing Textures to optimize CPU
 for _, v in pairs(Workspace:GetDescendants()) do
@@ -153,7 +199,6 @@ for _, v in pairs(game.Players:GetChildren()) do
 end
 
 print("Done Clearing")
-
 
 
 local function len(table)
@@ -233,7 +278,7 @@ antiAFK()
 
 
 while true do
-    task.wait(0.3)
+    task.wait(0.25)
     local activeChild = #Active:GetChildren()
     if activeChild == 0 then
         tapAura()
@@ -247,3 +292,5 @@ while true do
         end
     end
 end
+
+
