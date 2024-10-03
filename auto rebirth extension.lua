@@ -141,7 +141,7 @@ end
 
 print("calling p function")
 pcall(function()
-    game:GetService("Workspace"):WaitForChild("ALWAYS_RENDERING"):Destroy()
+    game:GetService("Workspace").ALWAYS_RENDERING:Destroy()
 
     for i, v in pairs(game:GetService("CoreGui"):GetChildren()) do
         if v:IsA("ScreenGui") then
