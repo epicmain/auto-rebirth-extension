@@ -1797,36 +1797,6 @@ local function checkAndRedeemRankRewards()
 end
 
 
--- Pet speed 200%
-require(Client.PlayerPet).CalculateSpeedMultiplier = function(...)
-    return 200
-end
-
--- magnet collect
-for _, lootbag in pairs(Workspace.__THINGS:FindFirstChild("Lootbags"):GetChildren()) do
-    if lootbag then
-        ReplicatedStorage.Network:WaitForChild("Lootbags_Claim"):FireServer(unpack( { [1] = { [1] = lootbag.Name, }, } ))
-        lootbag:Destroy()
-        task.wait()
-    end
-end
-
-Workspace.__THINGS:FindFirstChild("Lootbags").ChildAdded:Connect(function(lootbag)
-    task.wait()
-    if lootbag then
-        ReplicatedStorage.Network:WaitForChild("Lootbags_Claim"):FireServer(unpack( { [1] = { [1] = lootbag.Name, }, } ))
-        lootbag:Destroy()
-    end
-end)
-
-Workspace.__THINGS:FindFirstChild("Orbs").ChildAdded:Connect(function(orb)
-    task.wait()
-    if orb then
-        ReplicatedStorage.Network:FindFirstChild("Orbs: Collect"):FireServer(unpack( { [1] = { [1] = tonumber(orb.Name), }, } ))
-        orb:Destroy()
-    end
-end)
-
 ReplicatedStorage:WaitForChild("Network"):WaitForChild("ForeverPacks: Claim Free"):InvokeServer("Default")  -- collect free foreverpack
 
 if not clientSaveGet.PickedStarterPet then
@@ -2077,7 +2047,6 @@ while true do
                 end
                 break
             end
-        
 
 
         -- Collecting
@@ -2102,6 +2071,7 @@ while true do
             else
                 buyVendingMachine()
             end
+
 
         -- Upgrading
         elseif questName == "UPGRADE_POTION" then
