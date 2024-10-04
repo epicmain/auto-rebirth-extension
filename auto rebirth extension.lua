@@ -105,13 +105,14 @@ Workspace.__THINGS:FindFirstChild("Lootbags").ChildAdded:Connect(function(lootba
     end
 end)
 
-Workspace.__THINGS:FindFirstChild("Orbs").ChildAdded:Connect(function(orb)
-    task.wait(0.2)
-    if orb then
-        ReplicatedStorage.Network:FindFirstChild("Orbs: Collect"):FireServer(unpack( { [1] = { [1] = tonumber(orb.Name), }, } ))
-        orb:Destroy()
-    end
-end)
+local orb = require(game:GetService("ReplicatedStorage").Library.Client.OrbCmds.Orb)
+
+orb.DefaultPickupDistance = 0  -- slowly comes to player, disable
+orb.CollectDistance = 100  -- insane instant magnet
+orb.BillboardDistance = 0  -- disables gui showing collected coins
+orb.SoundDistance = 0
+orb.CombineDelay = 0
+orb.CombineDistance = 400
 
 -- Settings toggling not working.
 print(require(Client.SettingsCmds).Get("PotatoMode"))
@@ -130,6 +131,14 @@ hookfunction(getsenv(game:GetService("Players").LocalPlayer.PlayerScripts.Script
 end)
 
 hookfunction(require(game:GetService("ReplicatedStorage").Library.Client.PlayerPet).SetTarget, function()
+    return
+end)
+
+hookfunction(require(game:GetService("ReplicatedStorage").Library.Client.OrbCmds.Orb).RenderParticles, function()
+    return
+end)
+
+hookfunction(require(game:GetService("ReplicatedStorage").Library.Client.OrbCmds.Orb).SimulatePhysics, function()
     return
 end)
 
@@ -294,3 +303,6 @@ while true do
 end
 
 
+for x, y in game:GetService("Workspace")["__THINGS"].Orbs:FindChildren() do
+    game.ReplicatedStorage.Network:FindFirstChild("Orbs: Collect"):FireServer(unpack( { [1] = { [1] = tonumber(y.Name), }, } ))
+end
