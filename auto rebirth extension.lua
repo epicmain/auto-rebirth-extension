@@ -183,6 +183,10 @@ hookfunction(require(game:GetService("ReplicatedStorage").Library.Client.GUIFX.C
     return
 end)
 
+hookfunction(getsenv(game:GetService("Players").LocalPlayer.PlayerScripts.Scripts.Core["Server Closing"]).UpdateServerClosing, function()
+    return
+end)
+
 -- firework Launch, Explosion, Celebration
 hookfunction(require(game:GetService("ReplicatedStorage").Library.Client.WorldFX.Fireworks).Launch, function()
     return
@@ -311,7 +315,7 @@ end
 
 local function antiAFK()
     -- disable idle tracking event
-    LocalPlayer.PlayerScripts.Scripts.Core["Idle Tracking"].Enabled = false
+    LocalPlayer.PlayerScripts.Scripts.Core["Idle Tracking"].Disabled = true
     if getconnections then
         for _, v in pairs(getconnections(LocalPlayer.Idled)) do
             v:Disable()
