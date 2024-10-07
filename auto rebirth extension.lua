@@ -6,7 +6,7 @@ local LocalPlayer = game:GetService("Players").LocalPlayer
 local myHumanoidRootPart = LocalPlayer.Character.HumanoidRootPart
 
 local maxBreakableDistance = 50  -- 150 is max
-local zoneName = require(game:GetService("ReplicatedStorage").Library.Client.ZoneCmds).GetMaxOwnedZone()
+local zoneName
 local normalOrChest
 local Active = game:GetService("Workspace")["__THINGS"]["__INSTANCE_CONTAINER"].Active
 
@@ -16,9 +16,7 @@ until #Active:GetChildren() <= 0
 
 local settingsCmds = require(Client.SettingsCmds)
 
-local map = Workspace:WaitForChild("Map")
-
-
+local map
 local PlaceId = game.PlaceId
 if PlaceId == 8737899170 then
     map = Workspace.Map
@@ -74,10 +72,8 @@ local function clearTextures(v)
         v[v.ClassName .. "Template"] = 1
     elseif v.Name == "Foilage" and v:IsA("Folder") then
         v:Destroy()
-    elseif string.find(v.Name, "Tree") or string.find(v.Name, "Bush") or string.find(v.Name, "grass") then
+    elseif string.find(v.Name, "Bush") then  -- Waterfall, Tree has been removed due to similar map name
         task.wait()
-        v:Destroy()
-    elseif v.Name == "Waterfall" then
         v:Destroy()
     end
 end
@@ -225,11 +221,11 @@ print("calling p function")
 pcall(function()
     game:GetService("Workspace").ALWAYS_RENDERING:Destroy()
 
-    for i, v in pairs(game:GetService("CoreGui"):GetChildren()) do
-        if v:IsA("ScreenGui") then
-            v.Enabled = false
-        end
-    end
+    -- for i, v in pairs(game:GetService("CoreGui"):GetChildren()) do
+    --     if v:IsA("ScreenGui") then
+    --         v.Enabled = false
+    --     end
+    -- end
 
     -- Disables 3D Rendering (Whitescreen)
     -- local RunService = game:GetService("RunService")
@@ -291,17 +287,23 @@ local function len(table)
     return count
 end
 
-local function tapAura()
-    local nearestBreakable = nil
-    repeat 
-        nearestBreakable = getsenv(LocalPlayer.PlayerScripts.Scripts.GUIs["Auto Tapper"]).GetNearestBreakable()
-        task.wait()
-    until nearestBreakable and nearestBreakable:GetModelCFrame()
+local function tapAuraAndChest(chestDetected)
+    if not chestDetected then
+        local nearestBreakable = nil
+        repeat 
+            nearestBreakable = getsenv(LocalPlayer.PlayerScripts.Scripts.GUIs["Auto Tapper"]).GetNearestBreakable()
+            task.wait()
+        until nearestBreakable and nearestBreakable:GetModelCFrame()
 
-    local breakableDistance = (nearestBreakable:GetModelCFrame().Position - myHumanoidRootPart.CFrame.Position).Magnitude
-    -- auto break nearby breakables
-    if breakableDistance <= maxBreakableDistance then
-        ReplicatedStorage.Network["Breakables_PlayerDealDamage"]:FireServer(nearestBreakable.Name)
+        local breakableDistance = (nearestBreakable:GetModelCFrame().Position - myHumanoidRootPart.CFrame.Position).Magnitude
+        -- auto break nearby breakables
+        if breakableDistance <= maxBreakableDistance then
+            ReplicatedStorage.Network["Breakables_PlayerDealDamage"]:FireServer(nearestBreakable.Name)
+        end
+    else
+        for v in require(Client.BreakableCmds).AllByZoneAndClass(zoneName, "Chest") do
+            ReplicatedStorage.Network["Breakables_PlayerDealDamage"]:FireServer(v.Name)
+        end
     end
 end
 
@@ -330,17 +332,17 @@ local function antiAFK()
     print("[Anti-AFK Activated!]")
 end
 
-local function petTargetEventAndBreakables(zone)
+local function petTargetChestAndBreakables()
     local chest
     local normal = {}
-    for v in require(Client.BreakableCmds).AllByZoneAndClass(zone, normalOrChest) do
+    for v in require(Client.BreakableCmds).AllByZoneAndClass(zoneName, normalOrChest) do
         if normalOrChest == "Chest" then
             chest = v
         else
             table.insert(normal, v)
         end
     end
-
+    
     local normalNum = 0
     local args = {
         [1] = {}
@@ -362,16 +364,22 @@ antiAFK()
 while true do
     task.wait()
     local activeChild = #Active:GetChildren()
+    zoneName = require(game:GetService("ReplicatedStorage").Library.Client.ZoneCmds).GetMaxOwnedZone()
     if activeChild == 0 then
-        tapAura()
-        activateUlti()
+        if len(require(Client.BreakableCmds).AllByZoneAndClass(zoneName, "Chest")) >= 1 then
+            tapAuraAndChest(true)
+        else
+            tapAuraAndChest(false)
+        end
+
         if len(require(Client.BreakableCmds).AllByZoneAndClass(zoneName, "Chest")) >= 1 then
             normalOrChest = "Chest"
-            petTargetEventAndBreakables(zoneName)
+            petTargetChestAndBreakables()
         else
             normalOrChest = "Normal"
-            petTargetEventAndBreakables(zoneName)
+            petTargetChestAndBreakables()
         end
+        activateUlti()
     end
 end
 
