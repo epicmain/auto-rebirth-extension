@@ -359,20 +359,20 @@ end
 antiAFK()
 
 
--- while true do
---     task.wait()
---     local activeChild = #Active:GetChildren()
---     if activeChild == 0 then
---         tapAura()
---         activateUlti()
---         if len(require(Client.BreakableCmds).AllByZoneAndClass(zoneName, "Chest")) >= 1 then
---             normalOrChest = "Chest"
---             petTargetEventAndBreakables(zoneName)
---         else
---             normalOrChest = "Normal"
---             petTargetEventAndBreakables(zoneName)
---         end
---     end
--- end
+while true do
+    task.wait()
+    local activeChild = #Active:GetChildren()
+    if activeChild == 0 then
+        tapAura()
+        activateUlti()
+        if len(require(Client.BreakableCmds).AllByZoneAndClass(zoneName, "Chest")) >= 1 then
+            normalOrChest = "Chest"
+            petTargetEventAndBreakables(zoneName)
+        else
+            normalOrChest = "Normal"
+            petTargetEventAndBreakables(zoneName)
+        end
+    end
+end
 
 
