@@ -581,6 +581,7 @@ local function checkAndEquipBestSpecifiedEnchants()
                     else
                         local secondaryBestEnchantTier = bestEnchants[enchantName]["tier"]
                         while redo do
+                            task.wait()
                             secondaryBestEnchantTier = secondaryBestEnchantTier - 1 -- best enchant for the other slot that wanted the same enchant
                             
                             if secondaryBestEnchantTier >= 1 then -- if its more than tier 1, continue
