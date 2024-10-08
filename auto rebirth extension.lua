@@ -352,7 +352,9 @@ local function petTargetChestAndBreakables()
         if normalOrChest == "Chest" then 
             args[1][petId] = chest
         else
-            args[1][petId] = normal[normalNum]
+            pcall(function()
+                args[1][petId] = normal[normalNum]
+            end)
         end
     end
     game:GetService("ReplicatedStorage"):WaitForChild("Network"):WaitForChild("Breakables_JoinPetBulk"):FireServer(unpack(args))
