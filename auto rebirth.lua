@@ -109,20 +109,19 @@ local fastestHatchTime = getsenv(game:GetService("Players").LocalPlayer.PlayerSc
 local currentMaxHatch = eggCmds.GetMaxHatch()
 local eggData
 local eggCFrame
-local maxHatchAmount = 20
 local eggHatchedBefore = 0
 -- ^^^ Egg hatching variables ^^^
 
 --- vvv EggSlot variables vvv
 local currentEggSlots
 local currentmaxPurchaseableEggs = rankCmds.GetMaxPurchasableEggSlots()
-local MAX_EGG_SLOTS = 20
+local MAX_EGG_SLOTS = 50
 -- ^^^ EggSlot variables ^^^
 
 --- vvv Pet slot variables vvv
 local currentEquipSlots
 local currentmaxPurchaseableEquips = rankCmds.GetMaxPurchasableEquipSlots()
-local MAX_PET_SLOTS = 35
+local MAX_PET_SLOTS = 45
 --- ^^^ Pet slot variables ^^^
 
 -- vvv Fruit variables vvv
@@ -143,9 +142,9 @@ local enchantIdToName
 local enchants = {
     [1] = "Tap Power", 
     [2] = "Coins", 
-    [3] = "Strong Pets", 
-    [4] = "Treasure Hunter", 
-    [5] = "Diamonds"
+    [3] = "Tap Power", 
+    [4] = "Strong Pets", 
+    [5] = "Treasure Hunter"
 }
 
 local bestEnchants = {
@@ -466,6 +465,10 @@ local function DeleteAllTextures()
     for _, v in pairs(game:GetDescendants()) do
         if v:IsA("Part") or v:IsA("BasePart") then
             v.Transparency = 1
+        elseif v:IsA("TextLabel") then
+            v.TextTransparency = 1
+        elseif v:IsA("ImageLabel") then
+            v.ImageTransparency = 1
         end
     end
 end
@@ -1565,10 +1568,10 @@ local function autoHatchEgg()
     -- auto hatch with delay
     if (tick() - timeStart) >= fastestHatchTime then
         timeStart = tick()
-        if currentMaxHatch <= maxHatchAmount then
+        if currentMaxHatch <= MAX_EGG_SLOTS then
             ReplicatedStorage.Network.Eggs_RequestPurchase:InvokeServer(eggData.name, currentMaxHatch)
         else
-            ReplicatedStorage.Network.Eggs_RequestPurchase:InvokeServer(eggData.name, maxHatchAmount)
+            ReplicatedStorage.Network.Eggs_RequestPurchase:InvokeServer(eggData.name, MAX_EGG_SLOTS)
         end
     end
     task.wait(fastestHatchTime)
@@ -1586,11 +1589,7 @@ local function teleportAndHatch()
     task.wait(1)
     myHumanoidRootPart.CFrame = eggCFrame  -- Teleport to egg
     task.wait(1)
-    for _, v in pairs(game:GetDescendants()) do
-        if v:IsA("Part") or v:IsA("BasePart") then
-            v.Transparency = 1
-        end
-    end
+    DeleteAllTextures()
 
     -- Hatch eggs
     if questName == "BEST_GOLD_PET" then  -- +1 is to hatch 100 extra egg to make sure enough pets to upgrade gold
@@ -1901,6 +1900,18 @@ task.spawn(function()
             task.wait(5)
             currentZone = nil
             teleportToMaxZone()
+        end
+
+        if LocalPlayer.PlayerGui.RankUp.Enabled then
+            LocalPlayer.PlayerGui.RankUp.Enabled = false
+        end
+        
+        if LocalPlayer.PlayerGui.Rebirth.Enabled then
+            LocalPlayer.PlayerGui.Rebirth.Enabled = false
+        end
+
+        if LocalPlayer.PlayerGui.MasteryPerk.Enabled then
+            LocalPlayer.PlayerGui.MasteryPerk.Enabled = false
         end
     end
 end)
