@@ -464,7 +464,7 @@ end
 
 
 local function DeleteAllTextures()
-    for _, v in pairs(map:GetDescendants()) do
+    for _, v in pairs(game:GetDescendants()) do
         if v:IsA("Part") or v:IsA("BasePart") then
             v.Transparency = 1
         end
@@ -1127,59 +1127,60 @@ local function autoBossChest()
             end
         end
 
-        if len(clientSaveGet.Goals) == 0 then break end
-        local questId = clientSaveGet.Goals[goalsNumber]["Type"]
-        if noCooldown and 
-        (checkType(questId) == "COLLECT_POTION" or checkType(questId) == "COLLECT_ENCHANT")  then
-            print("Starting " .. zoneName)
+        pcall(function()
+            local questId = clientSaveGet.Goals[goalsNumber]["Type"]
+            if noCooldown and 
+            (checkType(questId) == "COLLECT_POTION" or checkType(questId) == "COLLECT_ENCHANT")  then
+                print("Starting " .. zoneName)
 
-            teleportToVendingOrBossChestZone(zoneName)
-            waitForVendingOrBossChestLoad(zoneName)
+                teleportToVendingOrBossChestZone(zoneName)
+                waitForVendingOrBossChestLoad(zoneName)
 
-            local timerFound = false
+                local timerFound = false
 
-            while not timerFound do
-                for _, v in pairs(Workspace.__DEBRIS:GetChildren()) do
-                    local timer
-                    local isTimer, _ = pcall(function()
-                        timer = v.ChestTimer.Timer.Text
-                    end)
+                while not timerFound do
+                    for _, v in pairs(Workspace.__DEBRIS:GetChildren()) do
+                        local timer
+                        local isTimer, _ = pcall(function()
+                            timer = v.ChestTimer.Timer.Text
+                        end)
 
-                    if v.Name == "host" and isTimer and isWithinRange(v)then
+                        if v.Name == "host" and isTimer and isWithinRange(v)then
 
-                        timerFound = true
+                            timerFound = true
 
-                        if timer == "00:00" then
-                            print(zoneName .. " chest is available")
-                            breakChest(zoneName)
-                        -- else
-                        --     print(zoneName .. " chest is not available " .. timer)
+                            if timer == "00:00" then
+                                print(zoneName .. " chest is available")
+                                breakChest(zoneName)
+                            -- else
+                            --     print(zoneName .. " chest is not available " .. timer)
+                            end
+
+                            if zoneName == "Beach" then
+                                beachBossChestCooldownStart = os.time()
+                            elseif zoneName == "Underworld" then
+                                underWorldBossChestCooldownStart = os.time()
+                            elseif zoneName == "No Path Forest" then
+                                noPathForestBossChestCooldownStart = os.time()
+                            elseif zoneName == "Heaven Gates" then
+                                heavenGatesBossChestCooldownStart = os.time()
+                            end
+
+                            break
                         end
-
-                        if zoneName == "Beach" then
-                            beachBossChestCooldownStart = os.time()
-                        elseif zoneName == "Underworld" then
-                            underWorldBossChestCooldownStart = os.time()
-                        elseif zoneName == "No Path Forest" then
-                            noPathForestBossChestCooldownStart = os.time()
-                        elseif zoneName == "Heaven Gates" then
-                            heavenGatesBossChestCooldownStart = os.time()
-                        end
-
-                        break
                     end
+                    task.wait()
                 end
-                task.wait()
+
+                -- warn("Finished " .. zoneName)
+
+                if getgenv().STAFF_DETECTED then
+                    return
+                end
+
+                task.wait(2)
             end
-
-            -- warn("Finished " .. zoneName)
-
-            if getgenv().STAFF_DETECTED then
-                return
-            end
-
-            task.wait(2)
-        end
+        end)
     end
     currentZone = nil
     print("teleporting back")
@@ -1219,49 +1220,50 @@ local function buyVendingMachine()
             end
         end
         
-        if len(clientSaveGet.Goals) == 0 then break end
-        local questId = clientSaveGet.Goals[goalsNumber]["Type"]
-        if (vendingMachineName == "FruitVendingMachine1" or vendingMachineName == "FruitVendingMachine2") and 
-        vendingMachineStock >= 4 then
-            print("Buying Fruits " .. zoneName)
+        pcall(function()
+            local questId = clientSaveGet.Goals[goalsNumber]["Type"]
+            if (vendingMachineName == "FruitVendingMachine1" or vendingMachineName == "FruitVendingMachine2") and 
+            vendingMachineStock >= 4 then
+                print("Buying Fruits " .. zoneName)
 
-            teleportToVendingOrBossChestZone(zoneName)
-            waitForVendingOrBossChestLoad(zoneName)
-            
-            myHumanoidRootPart.CFrame = vendingOrBossChestZonePath.INTERACT.Machines[vendingMachineName].PadGlow.CFrame + Vector3.new(10, 10, 0)
-            task.wait(1)
-            Network:WaitForChild("VendingMachines_Purchase"):InvokeServer(vendingMachineName,vendingMachineStock)
-            currentZone = nil
-            teleportToMaxZone()
+                teleportToVendingOrBossChestZone(zoneName)
+                waitForVendingOrBossChestLoad(zoneName)
+                
+                myHumanoidRootPart.CFrame = vendingOrBossChestZonePath.INTERACT.Machines[vendingMachineName].PadGlow.CFrame + Vector3.new(10, 10, 0)
+                task.wait(1)
+                Network:WaitForChild("VendingMachines_Purchase"):InvokeServer(vendingMachineName,vendingMachineStock)
+                currentZone = nil
+                teleportToMaxZone()
 
-        elseif checkType(questId) == "COLLECT_POTION" and 
-        (vendingMachineName == "PotionVendingMachine1" or vendingMachineName == "PotionVendingMachine2") and 
-        vendingMachineStock > 0 then
-            print("Buying Potion: " .. zoneName)
+            elseif checkType(questId) == "COLLECT_POTION" and 
+            (vendingMachineName == "PotionVendingMachine1" or vendingMachineName == "PotionVendingMachine2") and 
+            vendingMachineStock > 0 then
+                print("Buying Potion: " .. zoneName)
 
-            teleportToVendingOrBossChestZone(zoneName)
-            waitForVendingOrBossChestLoad(zoneName)
-            
-            myHumanoidRootPart.CFrame = vendingOrBossChestZonePath.INTERACT.Machines[vendingMachineName].PadGlow.CFrame + Vector3.new(10, 10, 0)
-            task.wait(1)
-            Network:WaitForChild("VendingMachines_Purchase"):InvokeServer(vendingMachineName,vendingMachineStock)
-            currentZone = nil
-            teleportToMaxZone()
+                teleportToVendingOrBossChestZone(zoneName)
+                waitForVendingOrBossChestLoad(zoneName)
+                
+                myHumanoidRootPart.CFrame = vendingOrBossChestZonePath.INTERACT.Machines[vendingMachineName].PadGlow.CFrame + Vector3.new(10, 10, 0)
+                task.wait(1)
+                Network:WaitForChild("VendingMachines_Purchase"):InvokeServer(vendingMachineName,vendingMachineStock)
+                currentZone = nil
+                teleportToMaxZone()
 
-        elseif checkType(questId) == "COLLECT_ENCHANT" and 
-        (vendingMachineName == "EnchantVendingMachine1" or vendingMachineName == "EnchantVendingMachine2") and 
-        vendingMachineStock > 0 then
-            print("Buying Enchant " .. zoneName)
+            elseif checkType(questId) == "COLLECT_ENCHANT" and 
+            (vendingMachineName == "EnchantVendingMachine1" or vendingMachineName == "EnchantVendingMachine2") and 
+            vendingMachineStock > 0 then
+                print("Buying Enchant " .. zoneName)
 
-            teleportToVendingOrBossChestZone(zoneName)
-            waitForVendingOrBossChestLoad(zoneName)
-            
-            myHumanoidRootPart.CFrame = vendingOrBossChestZonePath.INTERACT.Machines[vendingMachineName].PadGlow.CFrame + Vector3.new(10, 10, 0)
-            task.wait(1)
-            Network:WaitForChild("VendingMachines_Purchase"):InvokeServer(vendingMachineName,vendingMachineStock)
-            currentZone = nil
-            teleportToMaxZone()
-        end
+                teleportToVendingOrBossChestZone(zoneName)
+                waitForVendingOrBossChestLoad(zoneName)
+                
+                myHumanoidRootPart.CFrame = vendingOrBossChestZonePath.INTERACT.Machines[vendingMachineName].PadGlow.CFrame + Vector3.new(10, 10, 0)
+                task.wait(1)
+                Network:WaitForChild("VendingMachines_Purchase"):InvokeServer(vendingMachineName,vendingMachineStock)
+                currentZone = nil
+                teleportToMaxZone()
+            end
+        end)
     end
 end
 
