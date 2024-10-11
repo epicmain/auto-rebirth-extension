@@ -1722,7 +1722,7 @@ local function checkAndPurchaseEggSlot()
             break
         end
     end
-    print("Broken out of loop")
+    -- print("Broken out of loop")
     if teleportedToEggSlotMachine then
         currentZone = nil
         teleportToMaxZone()
@@ -1770,7 +1770,7 @@ local function checkEnoughCoinsToHatch(amountOfEggs)
     for eggName, eggTbl in require(Library.Directory.Eggs) do
         pcall(function()
             if eggData.name == eggName then
-                bestEggPrice = require(Library.Balancing.CalcEggPrice)(eggTbl)z
+                bestEggPrice = require(Library.Balancing.CalcEggPrice)(eggTbl)
             end
         end)
     end
@@ -1784,7 +1784,7 @@ end
 local function getBestEggData()
     bestEgg = clientSaveGet.MaximumAvailableEgg
     eggData = require(Library.Util.EggsUtil).GetByNumber(bestEgg) -- gets eggData.name, .eggNumber
-    print("New obtained eggData: ", eggData.name, " (", eggData.eggNumber, ")")
+    -- print("New obtained eggData: ", eggData.name, " (", eggData.eggNumber, ")")
 end
 
 
