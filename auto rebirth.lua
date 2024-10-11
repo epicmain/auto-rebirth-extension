@@ -26,7 +26,7 @@ repeat
     task.wait()
 until game:GetService("Workspace").__THINGS and game:GetService("Workspace").__DEBRIS
 
-print("[CLIENT] Loaded Game")
+-- print("[CLIENT] Loaded Game")
 -- ^^^ Wait for game load ^^^
 
 
@@ -37,8 +37,9 @@ local Library = ReplicatedStorage:WaitForChild("Library")
 local Client = Library.Client
 local LocalPlayer = game:GetService("Players").LocalPlayer
 local Workspace = game:GetService("Workspace")
-local Network = game:GetService("ReplicatedStorage"):WaitForChild("Network")
-local myHumanoidRootPart = LocalPlayer.Character.HumanoidRootPart
+local Network = ReplicatedStorage:WaitForChild("Network")
+local Character = LocalPlayer.Character
+local myHumanoidRootPart = Character.HumanoidRootPart
 local Active = game:GetService("Workspace").__THINGS.__INSTANCE_CONTAINER.Active
 repeat
     task.wait()
@@ -100,11 +101,11 @@ local maxZoneName, maxZoneData = zoneCmds.GetMaxOwnedZone()
 
 
 local startAutoHatchEggDelay = tick()
-local autoHatchEggDelay = 100
+local autoHatchEggDelay = 120
 
 -- vvv Egg hatching variables vvv
 local bestEgg = nil
-local timeStart = tick()
+local timeStartEggHatch = tick()
 local fastestHatchTime = getsenv(game:GetService("Players").LocalPlayer.PlayerScripts.Scripts.Game["Egg Opening Frontend"]).computeSpeedMult() * 2
 local currentMaxHatch = eggCmds.GetMaxHatch()
 local eggData
@@ -465,10 +466,6 @@ local function DeleteAllTextures()
     for _, v in pairs(game:GetDescendants()) do
         if v:IsA("Part") or v:IsA("BasePart") then
             v.Transparency = 1
-        elseif v:IsA("TextLabel") then
-            v.TextTransparency = 1
-        elseif v:IsA("ImageLabel") then
-            v.ImageTransparency = 1
         end
     end
 end
@@ -525,7 +522,7 @@ local function teleportToMaxZone()
 
     myHumanoidRootPart.CFrame = closestBreakZone.CFrame + Vector3.new(0, 10, 0)
 
-    game:GetService("ReplicatedStorage"):WaitForChild("Network"):WaitForChild("Pets_UnequipAll"):FireServer()
+    Network:WaitForChild("Pets_UnequipAll"):FireServer()
     task.wait(2)
     require(game:GetService("ReplicatedStorage").Library.Client.PetCmds).Restore()
     task.wait(2)
@@ -533,9 +530,59 @@ local function teleportToMaxZone()
     -- print("Pets Restored.")
 
     if maxZoneData.ZoneNumber >= getgenv().autoWorldConfig.ZONE_TO_REACH and rankCmds.GetMaxRank() >= getgenv().autoWorldConfig.RANK_TO_REACH and clientSaveGet.Rebirths >= getgenv().autoWorldConfig.REBIRTH_TO_REACH then
-        print("Reached selected zone, rebirth and rank")
+        -- print("Reached selected zone, rebirth and rank")
         rebirthNotDone = false
     end
+end
+
+
+local function teleportToPresentOrSafe(zoneDetail)
+    local zonePath
+    for _, v in pairs(map:GetChildren()) do
+        if v.Name == zoneDetail then
+            zonePath = v
+            break
+        end
+    end
+
+    task.wait()
+    myHumanoidRootPart.CFrame = zonePath:WaitForChild("PERSISTENT").Teleport.CFrame + Vector3.new(0, 10, 0)
+    task.wait()
+
+    if not zonePath:FindFirstChild("INTERACT") then
+        local loaded = false
+        local detectLoad = zonePath.ChildAdded:Connect(function(child)
+            if child.Name == "INTERACT" then
+                loaded = true
+            end
+        end)
+
+        repeat
+            task.wait()
+        until loaded
+
+        detectLoad:Disconnect()
+    end
+
+    local dist = 999
+    local closestBreakZone = nil
+    for _, v in pairs(zonePath.INTERACT.BREAK_ZONES:GetChildren()) do
+        local magnitude = (myHumanoidRootPart.Position - v.Position).Magnitude
+        -- print(magnitude)
+        if magnitude <= dist then
+            dist = magnitude
+            closestBreakZone = v
+        end
+    end
+
+    myHumanoidRootPart.CFrame = closestBreakZone.CFrame + Vector3.new(0, 10, 0)
+
+    Network:WaitForChild("Pets_UnequipAll"):FireServer()
+    task.wait(2)
+    require(game:GetService("ReplicatedStorage").Library.Client.PetCmds).Restore()
+    task.wait(2)
+    DeleteAllTextures()
+    -- print("Pets Restored.")
 end
 
 
@@ -634,11 +681,11 @@ local function checkAndPurchaseUpgrades()
         local gemAmount = upgrade[4]
 
         -- logic for processing upgrades
-        if areaNumber < maxZoneData.ZoneNumber then
+        if areaNumber <= maxZoneData.ZoneNumber then
             -- if owns upgrade, remove from table
             if upgradeCmds.Owns(ability, mapName) then
                 table.remove(upgrades, i)
-            elseif not upgradeCmds.Owns(ability, mapName) and currencyCmds.Get("Diamonds") > gemAmount and gemAmount < MAX_UPGRADE_GEM then
+            elseif currencyCmds.Get("Diamonds") > gemAmount and gemAmount < MAX_UPGRADE_GEM then
                 -- Teleport to zone so it can detect if owned, if too far it will detect false.
                 for _, v in pairs(map:GetChildren()) do
                     if string.find(v.Name, tostring(areaNumber) .. " | " .. mapName) then
@@ -792,13 +839,13 @@ local function checkAndConsumeToys()
 end
 
 
-local function teleportToFishing()
-    if not Active:FindFirstChild("Fishing") then
-        myHumanoidRootPart.CFrame = game:GetService("Workspace").__THINGS.Instances.Fishing.Teleports.Enter.CFrame + Vector3.new(0, 5, 0)
+local function teleportToInstance(instanceName)
+    if not Active:FindFirstChild(instanceName) then
+        myHumanoidRootPart.CFrame = game:GetService("Workspace").__THINGS.Instances[instanceName].Teleports.Enter.CFrame + Vector3.new(0, 5, 0)
     
         local loaded = false
         local detectLoad = Active.ChildAdded:Connect(function(child)
-            if child.Name == "Fishing" then
+            if child.Name == instanceName then
                 loaded = true
             end
         end)
@@ -1016,7 +1063,7 @@ local function breakChest(zone)
         args[1] = {
             [petId] = chest
         }
-        game:GetService("ReplicatedStorage"):WaitForChild("Network"):WaitForChild("Breakables_JoinPetBulk"):FireServer(unpack(args))
+        Network:WaitForChild("Breakables_JoinPetBulk"):FireServer(unpack(args))
     end
 
     local brokeChest = false
@@ -1038,7 +1085,7 @@ local function breakChest(zone)
         local args = {
             [1] = chest
         }
-        game:GetService("ReplicatedStorage").Network.Breakables_PlayerDealDamage:FireServer(unpack(args))
+        Network.Breakables_PlayerDealDamage:FireServer(unpack(args))
         task.wait()
     until brokeChest or (tick() - breakChestTimeStart) >= breakChestTimeLimit
 
@@ -1050,6 +1097,7 @@ local function isWithinRange(part)
     return (myHumanoidRootPart.CFrame.Position - part.CFrame.Position).magnitude <= 300
 end
 
+
 local function autoBossChest()
     local sortedKeys = {}
     for key in pairs(BigChests) do
@@ -1060,19 +1108,19 @@ local function autoBossChest()
     for _, key in ipairs(sortedKeys) do
         local zoneName = BigChests[key]
         local noCooldown = false
-        if zoneName == "Beach" then
+        if zoneName == "Beach" and maxZoneData.ZoneNumber >= 20 then
             if os.time() - beachBossChestCooldownStart >= bossChestCooldown then
                 noCooldown = true
             end
-        elseif zoneName == "Underworld" then
+        elseif zoneName == "Underworld" and maxZoneData.ZoneNumber >= 46 then
             if os.time() - underWorldBossChestCooldownStart >= bossChestCooldown then
                 noCooldown = true
             end
-        elseif zoneName == "No Path Forest" then
+        elseif zoneName == "No Path Forest" and maxZoneData.ZoneNumber >= 70 then
             if os.time() - noPathForestBossChestCooldownStart >= bossChestCooldown then
                 noCooldown = true
             end
-        elseif zoneName == "Heaven Gates" then
+        elseif zoneName == "Heaven Gates" and maxZoneData.ZoneNumber >= 95 then
             if os.time() - heavenGatesBossChestCooldownStart >= bossChestCooldown then
                 noCooldown = true
             end
@@ -1104,7 +1152,7 @@ local function autoBossChest()
                             -- print(zoneName .. " chest is available")
                             breakChest(zoneName)
                         -- else
-                        --     print(zoneName .. " chest is not available " .. timer)
+                        --     -- print(zoneName .. " chest is not available " .. timer)
                         end
 
                         if zoneName == "Beach" then
@@ -1149,22 +1197,22 @@ local function buyVendingMachine()
         local zoneName = vendingMachines[key]
         local vendingMachineName, vendingMachineStock
         for machineName, stock in clientSaveGet.VendingStocks do
-            if zoneName == "Cherry Blossom" and machineName == "PotionVendingMachine1" then
+            if maxZoneData.ZoneNumber >= 6 and zoneName == "Cherry Blossom" and machineName == "PotionVendingMachine1" then
                 vendingMachineName = machineName
                 vendingMachineStock = stock
-            elseif zoneName == "Misty Falls" and machineName == "EnchantVendingMachine1" then
+            elseif maxZoneData.ZoneNumber >= 9 and zoneName == "Misty Falls" and machineName == "EnchantVendingMachine1" then
                 vendingMachineName = machineName
                 vendingMachineStock = stock
-            elseif zoneName == "Mushroom Field" and machineName == "FruitVendingMachine1" then
+            elseif maxZoneData.ZoneNumber >= 14 and zoneName == "Mushroom Field" and machineName == "FruitVendingMachine1" then
                 vendingMachineName = machineName
                 vendingMachineStock = stock
-            elseif zoneName == "Pirate Cove" and machineName == "FruitVendingMachine2" then
+            elseif maxZoneData.ZoneNumber >= 26 and zoneName == "Pirate Cove" and machineName == "FruitVendingMachine2" then
                 vendingMachineName = machineName
                 vendingMachineStock = stock
-            elseif zoneName == "Safari" and machineName == "PotionVendingMachine2" then
+            elseif maxZoneData.ZoneNumber >= 35 and zoneName == "Safari" and machineName == "PotionVendingMachine2" then
                 vendingMachineName = machineName
                 vendingMachineStock = stock
-            elseif zoneName == "Fire and Ice" and machineName == "EnchantVendingMachine2" then
+            elseif maxZoneData.ZoneNumber >= 42 and zoneName == "Fire and Ice" and machineName == "EnchantVendingMachine2" then
                 vendingMachineName = machineName
                 vendingMachineStock = stock
             end
@@ -1181,7 +1229,7 @@ local function buyVendingMachine()
             
             myHumanoidRootPart.CFrame = vendingOrBossChestZonePath.INTERACT.Machines[vendingMachineName].PadGlow.CFrame + Vector3.new(10, 10, 0)
             task.wait(1)
-            game:GetService("ReplicatedStorage"):WaitForChild("Network"):WaitForChild("VendingMachines_Purchase"):InvokeServer(vendingMachineName,vendingMachineStock)
+            Network:WaitForChild("VendingMachines_Purchase"):InvokeServer(vendingMachineName,vendingMachineStock)
             currentZone = nil
             teleportToMaxZone()
 
@@ -1195,7 +1243,7 @@ local function buyVendingMachine()
             
             myHumanoidRootPart.CFrame = vendingOrBossChestZonePath.INTERACT.Machines[vendingMachineName].PadGlow.CFrame + Vector3.new(10, 10, 0)
             task.wait(1)
-            game:GetService("ReplicatedStorage"):WaitForChild("Network"):WaitForChild("VendingMachines_Purchase"):InvokeServer(vendingMachineName,vendingMachineStock)
+            Network:WaitForChild("VendingMachines_Purchase"):InvokeServer(vendingMachineName,vendingMachineStock)
             currentZone = nil
             teleportToMaxZone()
 
@@ -1209,7 +1257,7 @@ local function buyVendingMachine()
             
             myHumanoidRootPart.CFrame = vendingOrBossChestZonePath.INTERACT.Machines[vendingMachineName].PadGlow.CFrame + Vector3.new(10, 10, 0)
             task.wait(1)
-            game:GetService("ReplicatedStorage"):WaitForChild("Network"):WaitForChild("VendingMachines_Purchase"):InvokeServer(vendingMachineName,vendingMachineStock)
+            Network:WaitForChild("VendingMachines_Purchase"):InvokeServer(vendingMachineName,vendingMachineStock)
             currentZone = nil
             teleportToMaxZone()
         end
@@ -1220,7 +1268,7 @@ end
 local function startFishing()
     -- print("Start Fishing...")
     if Active.Fishing.Interactable:FindFirstChild("WoodenFishingRod") then
-        game:GetService("ReplicatedStorage"):WaitForChild("Network"):WaitForChild("Instancing_FireCustomFromClient"):FireServer("Fishing", "ClaimRod")
+        Network:WaitForChild("Instancing_FireCustomFromClient"):FireServer("Fishing", "ClaimRod")
     end
 
     -- Teleport to merchant, update merchant itemframe
@@ -1241,26 +1289,26 @@ local function startFishing()
         local proFishingRodPrice = 100000
 
         if not fishingRodItem["Sturdy Fishing Rod"].Buy.Cost.SoldOut.Visible and fishingCoins >= sturdyFishingRodPrice then
-            print("Buying Sturdy Fishing Rod")
-            game:GetService("ReplicatedStorage").Network.FishingMerchant_PurchaseRod:InvokeServer("Sturdy Fishing Rod")
+            -- print("Buying Sturdy Fishing Rod")
+            Network.FishingMerchant_PurchaseRod:InvokeServer("Sturdy Fishing Rod")
             task.wait(3)
             break
 
         elseif not fishingRodItem["Advanced Fishing Rod"].Buy.Cost.SoldOut.Visible and fishingCoins >= advancedFishingRodPrice then
-            print("Buying Advanced Fishing Rod")
-            game:GetService("ReplicatedStorage").Network.FishingMerchant_PurchaseRod:InvokeServer("Advanced Fishing Rod")
+            -- print("Buying Advanced Fishing Rod")
+            Network.FishingMerchant_PurchaseRod:InvokeServer("Advanced Fishing Rod")
             task.wait(3)
             break
 
         elseif not fishingRodItem["Super Fishing Rod"].Buy.Cost.SoldOut.Visible and fishingCoins >= superFishingRodPrice then
-            print("Buying Super Fishing Rod")
-            game:GetService("ReplicatedStorage").Network.FishingMerchant_PurchaseRod:InvokeServer("Super Fishing Rod")
+            -- print("Buying Super Fishing Rod")
+            Network.FishingMerchant_PurchaseRod:InvokeServer("Super Fishing Rod")
             task.wait(3)
             break
 
         elseif not fishingRodItem["Pro Fishing Rod"].Buy.Cost.SoldOut.Visible and fishingCoins >= proFishingRodPrice then
-            print("Buying Pro Fishing Rod")
-            game:GetService("ReplicatedStorage").Network.FishingMerchant_PurchaseRod:InvokeServer("Pro Fishing Rod")
+            -- print("Buying Pro Fishing Rod")
+            Network.FishingMerchant_PurchaseRod:InvokeServer("Pro Fishing Rod")
             task.wait(3)
             break
         end
@@ -1335,8 +1383,8 @@ end
 
 local function startDigging()
     -- print("Start Digging...")
-    if game:GetService("Workspace")["__THINGS"]["__INSTANCE_CONTAINER"].Active.Digsite.Important:FindFirstChild("Shovel") then
-        game:GetService("ReplicatedStorage"):WaitForChild("Network"):WaitForChild("Instancing_FireCustomFromClient"):FireServer("Digsite", "ClaimShovel")
+    if Active.Digsite.Important:FindFirstChild("Shovel") then
+        Network:WaitForChild("Instancing_FireCustomFromClient"):FireServer("Digsite", "ClaimShovel")
     end
 
     -- Teleport to merchant, update merchant itemframe
@@ -1358,26 +1406,26 @@ local function startDigging()
 
 
             if not digsiteShovelItems["Normal Shovel"].Buy.Cost.SoldOut.Visible and digsiteCoins >= normalShovelPrice then
-                print("Buying Normal Shovel")
-                game:GetService("ReplicatedStorage").Network.DigsiteMerchant_PurchaseShovel:InvokeServer("Normal Shovel")
+                -- print("Buying Normal Shovel")
+                Network.DigsiteMerchant_PurchaseShovel:InvokeServer("Normal Shovel")
                 task.wait(3)
                 break
 
             elseif not digsiteShovelItems["Bluesteel Shovel"].Buy.Cost.SoldOut.Visible and digsiteCoins >= bluesteelShovelPrice then
-                print("Buying Bluesteel Shovel")
-                game:GetService("ReplicatedStorage").Network.DigsiteMerchant_PurchaseShovel:InvokeServer("Bluesteel Shovel")
+                -- print("Buying Bluesteel Shovel")
+                Network.DigsiteMerchant_PurchaseShovel:InvokeServer("Bluesteel Shovel")
                 task.wait(3)
                 break
 
             elseif not digsiteShovelItems["Sharp Shovel"].Buy.Cost.SoldOut.Visible and digsiteCoins >= sharpShovelPrice then
-                print("Buying Sharp Shovel")
-                game:GetService("ReplicatedStorage").Network.DigsiteMerchant_PurchaseShovel:InvokeServer("Sharp Shovel")
+                -- print("Buying Sharp Shovel")
+                Network.DigsiteMerchant_PurchaseShovel:InvokeServer("Sharp Shovel")
                 task.wait(3)
                 break
 
             elseif not digsiteShovelItems["Pro Shovel"].Buy.Cost.SoldOut.Visible and digsiteCoins >= proShovelPrice then
-                print("Buying Pro Shovel")
-                game:GetService("ReplicatedStorage").Network.DigsiteMerchant_PurchaseShovel:InvokeServer("Pro Shovel")
+                -- print("Buying Pro Shovel")
+                Network.DigsiteMerchant_PurchaseShovel:InvokeServer("Pro Shovel")
                 task.wait(3)
                 break
             end
@@ -1399,24 +1447,196 @@ local function startDigging()
 
             if chest then
                 myHumanoidRootPart.CFrame = chest.Top.CFrame
-                game:GetService("ReplicatedStorage").Network:WaitForChild("Instancing_FireCustomFromClient"):FireServer("Digsite", "DigChest", chest:GetAttribute('Coord'))
+                Network:WaitForChild("Instancing_FireCustomFromClient"):FireServer("Digsite", "DigChest", chest:GetAttribute('Coord'))
             elseif block then
                 myHumanoidRootPart.CFrame = block.CFrame
-                game:GetService("ReplicatedStorage").Network:WaitForChild("Instancing_FireCustomFromClient"):FireServer("Digsite", "DigBlock", block:GetAttribute('Coord'))
+                Network:WaitForChild("Instancing_FireCustomFromClient"):FireServer("Digsite", "DigBlock", block:GetAttribute('Coord'))
             end
             task.wait()
         end
     end)
     myHumanoidRootPart.CFrame = game:GetService("Workspace").__THINGS.Instances.Digsite.Teleports.Leave.CFrame + Vector3.new(0, 5, 0)
+    
     while Active:FindFirstChild("Digsite") do
         task.wait()
     end
     -- print("Done Digging...")
 end
 
+-- Might need additional check before starting spawn obby
+local function startSpawnObby()
+    pcall(function()
+        myHumanoidRootPart.CFrame = myHumanoidRootPart.CFrame + Vector3.new(90, 5, 0)
+        task.wait(5)    
+
+        myHumanoidRootPart.CFrame = Active.SpawnObby.INTERACT.Chests["InstanceChest: 1"].Interact.CFrame + Vector3.new(0, 15, 0)
+        task.wait(1)
+        Network:WaitForChild("InstanceChests_Claim"):InvokeServer("InstanceChest: 1", "SpawnObby")            
+
+        task.wait(10)
+        myHumanoidRootPart.CFrame = Active.SpawnObby.Goal.Pad.CFrame + Vector3.new(-60, 5, 0)
+        task.wait(3)
+        local character = game.Players.LocalPlayer.Character
+
+        if character and character:FindFirstChild("Humanoid") then
+            local humanoid = character.Humanoid
+            local targetPosition = Active.SpawnObby.Goal.Pad.Position
+
+            humanoid:MoveTo(targetPosition)
+        end
+    end)
+
+    local startTime = tick()
+    while Active:FindFirstChild("SpawnObby") do
+        if tick() - startTime >= 10 then
+            myHumanoidRootPart.CFrame = game:GetService("Workspace").__THINGS.Instances.SpawnObby.Teleports.Leave.CFrame + Vector3.new(0, 5, 0)
+        end
+        task.wait()
+    end
+end
+
+
+local function startMinefield()
+    local startBlock = 1
+    pcall(function()
+        while true do
+            task.wait()
+            myHumanoidRootPart.CFrame = Active.Minefield.Mines:GetChildren()[startBlock].Pad.CFrame + Vector3.new(0, 5, 0)
+            task.wait(1)
+            if tostring(Active.Minefield.Mines:GetChildren()[startBlock].Pad.BrickColor) == "Lime green" then
+                startBlock = startBlock + 15
+            elseif tostring(Active.Minefield.Mines:GetChildren()[startBlock].Pad.BrickColor) == "Really red" then
+                if startBlock < 15 then
+                    startBlock = startBlock + 1
+                else
+                    startBlock = startBlock - 15 + 1
+                end
+                task.wait(5)
+            end
+        end
+    end)
+
+    local character = game.Players.LocalPlayer.Character
+
+    if character and character:FindFirstChild("Humanoid") then
+        local humanoid = character.Humanoid
+        local targetPosition = (myHumanoidRootPart.CFrame + Vector3.new(20, 0, 0)).Position
+
+        humanoid:MoveTo(targetPosition)
+    end
+
+    local startTime = tick()
+    while Active:FindFirstChild("Minefield") do
+        if tick() - startTime >= 10 then
+            myHumanoidRootPart.CFrame = game:GetService("Workspace").__THINGS.Instances.Minefield.Teleports.Leave.CFrame + Vector3.new(0, 5, 0)
+        end
+        task.wait()
+    end
+    -- print("Done with minefield")
+end
+
+
+local function startJungleObby()
+    pcall(function()
+        myHumanoidRootPart.CFrame = myHumanoidRootPart.CFrame + Vector3.new(0, 0, 20)
+        task.wait(10)
+        myHumanoidRootPart.CFrame = Active.JungleObby.Sign2.CFrame + Vector3.new(-10, 0, 0)
+        task.wait(10)
+        myHumanoidRootPart.CFrame = Active.JungleObby.INTERACT.Chests["InstanceChest: 1"].Interact.CFrame + Vector3.new(0, 15, 0)
+        task.wait(1)
+        game.ReplicatedStorage:WaitForChild("Network"):WaitForChild("InstanceChests_Claim"):InvokeServer("InstanceChest: 1", "JungleObby")
+        task.wait(10)
+        myHumanoidRootPart.CFrame = Active.JungleObby.Interactable.Goal.Pad.CFrame + Vector3.new(-20, 0, 30)
+        task.wait(5)
+        local character = game.Players.LocalPlayer.Character
+
+        if character and character:FindFirstChild("Humanoid") then
+            local humanoid = character.Humanoid
+            local targetPosition = Active.JungleObby.Interactable.Goal.Pad.Position
+
+            humanoid:MoveTo(targetPosition)
+        end
+    end)
+
+    local startTime = tick()
+    while Active:FindFirstChild("JungleObby") do
+        if tick() - startTime >= 10 then
+            myHumanoidRootPart.CFrame = game:GetService("Workspace").__THINGS.Instances.JungleObby.Teleports.Leave.CFrame + Vector3.new(0, 5, 0)
+        end
+        task.wait()
+    end
+    -- print("Done with JungleObby!")
+end
+
+
+local function startAtlantis()
+    pcall(function()
+        local ringPath = Active.Atlantis.Rings
+        local ringNum = 1
+
+        task.wait()
+        if Active.Atlantis.Rings[tostring(ringNum)].Collision.CFrame then
+            myHumanoidRootPart.CFrame = Active.Atlantis.Rings[tostring(ringNum)].Collision.CFrame
+            ringNum = ringNum + 1
+            task.wait(2)
+        end
+    end)
+
+    local startTime = tick()
+    while Active:FindFirstChild("Atlantis") do
+        if tick() - startTime >= 10 then
+            myHumanoidRootPart.CFrame = game:GetService("Workspace").__THINGS.Instances.Atlantis.Teleports.Leave.CFrame + Vector3.new(0, 5, 0)
+        end
+        task.wait()
+    end
+    -- print("Done with atlantis!")
+end
+
+
+local function startPyramidObby()
+    pcall(function()
+        myHumanoidRootPart.CFrame = myHumanoidRootPart.CFrame + Vector3.new(-25, 0, 0)
+        task.wait(15)
+        myHumanoidRootPart.CFrame = Active.PyramidObby.INTERACT.Chests["InstanceChest: 2"].Interact.CFrame + Vector3.new(0, 15, 0)
+        task.wait(5)
+        game:GetService("ReplicatedStorage"):WaitForChild("Network"):WaitForChild("InstanceChests_Claim"):InvokeServer("InstanceChest: 2", "PyramidObby")  
+        task.wait(55)
+        myHumanoidRootPart.CFrame = Active.PyramidObby.Interactable.Goal.PadGlow.CFrame + Vector3.new(0, 15, 0)
+    end)
+    
+    local startTime = tick()
+    while Active:FindFirstChild("PyramidObby") do
+        if tick() - startTime >= 10 then
+            myHumanoidRootPart.CFrame = game:GetService("Workspace").__THINGS.Instances.PyramidObby.Teleports.Leave.CFrame + Vector3.new(0, 5, 0)
+        end
+        task.wait()
+    end
+    -- print("Done with PyramidObby!")
+end
+
+
+local function startIceObby()
+    pcall(function()
+        myHumanoidRootPart.CFrame = Active.IceObby.INTERACT.Chests["InstanceChest: 3"].Interact.CFrame + Vector3.new(0, 15, 0)
+        task.wait(1)
+        game.ReplicatedStorage:WaitForChild("Network"):WaitForChild("InstanceChests_Claim"):InvokeServer("InstanceChest: 3", "IceObby")
+        task.wait(100)
+        myHumanoidRootPart.CFrame = Active.IceObby.Interactable.Goal.PadGlow.CFrame + Vector3.new(0, 15, 0)
+    end)
+
+    local startTime = tick()
+    while Active:FindFirstChild("IceObby") do
+        if tick() - startTime >= 10 then
+            myHumanoidRootPart.CFrame = game:GetService("Workspace").__THINGS.Instances.IceObby.Teleports.Leave.CFrame + Vector3.new(0, 5, 0)
+        end
+        task.wait()
+    end
+    -- print("Done with IceObby!")
+end
+
 
 local function teleportToMachine(mapName)
-    print("Teleporting to machine")
+    -- print("Teleporting to machine")
     local zonePath = map[mapName]
     myHumanoidRootPart.CFrame = zonePath.PERSISTENT.Teleport.CFrame + Vector3.new(0, 10, 0)
     task.wait()
@@ -1459,7 +1679,7 @@ local function teleportToMachine(mapName)
         myHumanoidRootPart.CFrame = zonePath.INTERACT.Machines.SuperMachine.PadGlow.CFrame + Vector3.new(20, 10, 0)
     end
     task.wait(2)
-    print("out of tp to machine")
+    -- print("out of tp to machine")
 end
 
 local function checkAndPurchaseEggSlot()
@@ -1478,7 +1698,7 @@ local function checkAndPurchaseEggSlot()
         elseif (currentEggSlots == 30) or (currentEggSlots >= 34 and currentEggSlots <= 64) then
             currentEggSlots = currentEggSlots + 3
         -- else
-        --     print("CANT FIND currentEggSlots!!!")
+        --     -- print("CANT FIND currentEggSlots!!!")
         end
 
         -- check if can afford egg slot
@@ -1494,7 +1714,7 @@ local function checkAndPurchaseEggSlot()
             end
 
             -- print("Buying slot " .. tostring(currentEggSlots) .. " for " .. tostring(eggSlotDiamondCost[currentEggSlots]) .. " diamonds")
-            ReplicatedStorage.Network.EggHatchSlotsMachine_RequestPurchase:InvokeServer(currentEggSlots)
+            Network.EggHatchSlotsMachine_RequestPurchase:InvokeServer(currentEggSlots)
             task.wait(4)
 
             -- print("Purchased egg slot " .. tostring(currentEggSlots))
@@ -1502,7 +1722,7 @@ local function checkAndPurchaseEggSlot()
             break
         end
     end
-    -- print("Broken out of loop")
+    -- -- print("Broken out of loop")
     if teleportedToEggSlotMachine then
         currentZone = nil
         teleportToMaxZone()
@@ -1529,7 +1749,7 @@ local function checkAndPurchasePetSlot()
             end
 
             -- print("Buying slot " .. tostring(currentEquipSlots) .. " for " .. tostring(petSlotDiamondCost[currentEquipSlots]) .. " diamonds")
-            ReplicatedStorage.Network.EquipSlotsMachine_RequestPurchase:InvokeServer(currentEquipSlots)
+            Network.EquipSlotsMachine_RequestPurchase:InvokeServer(currentEquipSlots)
             task.wait(4)
 
             -- print("Purchased pet equip slot " .. tostring(currentEquipSlots))
@@ -1544,10 +1764,27 @@ local function checkAndPurchasePetSlot()
 end
 
 
+-- check if enough coins
+local function checkEnoughCoinsToHatch(amountOfEggs)
+    local bestEggPrice
+    for eggName, eggTbl in require(Library.Directory.Eggs) do
+        pcall(function()
+            if .name == eggName then
+                bestEggPrice = require(Library.Balancing.CalcEggPrice)(eggTbl)
+            end
+        end)
+    end
+    
+    if bestEggPrice * amountOfEggs <= currencyCmds.Get(worldCoin) then
+        return true
+    end
+end
+
+
 local function getBestEggData()
     bestEgg = clientSaveGet.MaximumAvailableEgg
     eggData = require(Library.Util.EggsUtil).GetByNumber(bestEgg) -- gets eggData.name, .eggNumber
-    -- print("New obtained eggData: ", eggData.name, " (", eggData.eggNumber, ")")
+    -- -- print("New obtained eggData: ", eggData.name, " (", eggData.eggNumber, ")")
 end
 
 
@@ -1566,12 +1803,14 @@ end
 
 local function autoHatchEgg()
     -- auto hatch with delay
-    if (tick() - timeStart) >= fastestHatchTime then
-        timeStart = tick()
-        if currentMaxHatch <= MAX_EGG_SLOTS then
-            ReplicatedStorage.Network.Eggs_RequestPurchase:InvokeServer(eggData.name, currentMaxHatch)
+    if (tick() - timeStartEggHatch) >= fastestHatchTime then
+        timeStartEggHatch = tick()
+        if checkEnoughCoinsToHatch(currentMaxHatch) and currentMaxHatch < MAX_EGG_SLOTS then
+            Network.Eggs_RequestPurchase:InvokeServer(eggData.name, currentMaxHatch)
+        elseif checkEnoughCoinsToHatch(MAX_EGG_SLOTS) then
+            Network.Eggs_RequestPurchase:InvokeServer(eggData.name, MAX_EGG_SLOTS)
         else
-            ReplicatedStorage.Network.Eggs_RequestPurchase:InvokeServer(eggData.name, MAX_EGG_SLOTS)
+            Network.Eggs_RequestPurchase:InvokeServer(eggData.name, 1)
         end
     end
     task.wait(fastestHatchTime)
@@ -1579,7 +1818,7 @@ end
 
 
 local function teleportAndHatch()
-    print("In teleport and hatch")
+    -- print("In teleport and hatch")
     -- Teleport to Best Egg
     for _, v in pairs(Workspace.__THINGS.Eggs[worldEgg]:GetChildren()) do
         if string.find(v.Name, tostring(eggData.eggNumber) .. " - ") then
@@ -1618,10 +1857,12 @@ local function teleportAndHatch()
                 break
             end
         end
-    else
-        for i=1, math.ceil(100 / currentMaxHatch) do
+    elseif checkEnoughCoinsToHatch(math.ceil(60 / currentMaxHatch)) then
+        for i=1, math.ceil(60 / currentMaxHatch) do
             autoHatchEgg()
         end
+    else
+        autoHatchEgg()
     end
         
         
@@ -1658,23 +1899,6 @@ local function checkEnoughPotion()
 end
 
 
--- check if enough coins
-local function checkEnoughCoinsToHatch(amountOfEggs)
-    local bestEggPrice
-    for eggName, eggTbl in require(game:GetService("ReplicatedStorage").Library.Directory.Eggs) do
-        pcall(function()
-            if eggData.name == eggName then
-                bestEggPrice = require(Library.Balancing.CalcEggPrice)(eggTbl)
-            end
-        end)
-    end
-    
-    if bestEggPrice * amountOfEggs <= currencyCmds.Get(worldCoin) then
-        return true
-    end
-end
-
-
 local function thereIsAlreadySomethingInThisArea()
     for eventId, tbl in randomEventCmds.GetActive() do
         if tbl.parentID == currentZone then
@@ -1689,7 +1913,7 @@ local function consumeRandomEvent(itemName, itemCommand)
     for itemId, tbl in inventory.Misc do
         if tbl.id == itemName then
             -- print("Consuming", itemName)
-            game:GetService("ReplicatedStorage"):WaitForChild("Network"):WaitForChild(itemCommand):InvokeServer(itemId)
+            Network:WaitForChild(itemCommand):InvokeServer(itemId)
         end
     end
 end
@@ -1708,15 +1932,15 @@ local function useGoldMachine(tbl)
         for _, petName in ipairs(bestEggPets) do
             if tbl.id == petName and tbl._am ~= nil and tbl.pt == nil and tbl._am >= 10 then
                 if questName == "BEST_RAINBOW_PET" and math.floor((tbl._am / 10)) * 10 >= (questActualAmount * 100) then
-                    game:GetService("ReplicatedStorage"):WaitForChild("Network"):WaitForChild("GoldMachine_Activate"):InvokeServer(petId, questActualAmount * 10)
+                    Network:WaitForChild("GoldMachine_Activate"):InvokeServer(petId, questActualAmount * 10)
                     task.wait(1)
                     return true
                 elseif questName == "BEST_GOLD_PET" and math.floor((tbl._am / 10)) >= questActualAmount then
-                    game:GetService("ReplicatedStorage"):WaitForChild("Network"):WaitForChild("GoldMachine_Activate"):InvokeServer(petId, questActualAmount)
+                    Network:WaitForChild("GoldMachine_Activate"):InvokeServer(petId, questActualAmount)
                     task.wait(1)
                     return true
                 else
-                    game:GetService("ReplicatedStorage"):WaitForChild("Network"):WaitForChild("GoldMachine_Activate"):InvokeServer(petId, math.floor((tbl._am / 10)))
+                    Network:WaitForChild("GoldMachine_Activate"):InvokeServer(petId, math.floor((tbl._am / 10)))
                     usedGoldMachine = true
                 end
             end
@@ -1738,9 +1962,9 @@ local function useRainbowMachine(tbl)
         for _, petName in ipairs(bestEggPets) do
             if tbl.id == petName and tbl._am ~= nil and tbl.pt ~= nil and tbl._am >= 10 and tbl.pt == 1 then  -- tbl.pt if 1 means gold
                 if questActualAmount >= math.floor((tbl._am / 10)) then
-                    game:GetService("ReplicatedStorage"):WaitForChild("Network"):WaitForChild("RainbowMachine_Activate"):InvokeServer(petId, math.floor((tbl._am / 10)))
+                    Network:WaitForChild("RainbowMachine_Activate"):InvokeServer(petId, math.floor((tbl._am / 10)))
                 else
-                    game:GetService("ReplicatedStorage"):WaitForChild("Network"):WaitForChild("RainbowMachine_Activate"):InvokeServer(petId, questActualAmount)
+                    Network:WaitForChild("RainbowMachine_Activate"):InvokeServer(petId, questActualAmount)
                 end
                 task.wait(1)
                 return true
@@ -1773,7 +1997,7 @@ local function upgradeEnchant()
                 else
                     amountToUpgrade = math.floor(tbl._am / 5)
                 end
-                game:GetService("ReplicatedStorage"):WaitForChild("Network"):WaitForChild("UpgradeEnchantsMachine_Activate"):InvokeServer(enchantId, amountToUpgrade)
+                Network:WaitForChild("UpgradeEnchantsMachine_Activate"):InvokeServer(enchantId, amountToUpgrade)
                 task.wait(2)
                 break
             elseif tbl.tn >= 4 and tbl._am ~= nil and tbl._am >= 7 then
@@ -1782,7 +2006,7 @@ local function upgradeEnchant()
                 else
                     amountToUpgrade = math.floor(tbl._am / 7)
                 end
-                game:GetService("ReplicatedStorage"):WaitForChild("Network"):WaitForChild("UpgradeEnchantsMachine_Activate"):InvokeServer(enchantId, amountToUpgrade)
+                Network:WaitForChild("UpgradeEnchantsMachine_Activate"):InvokeServer(enchantId, amountToUpgrade)
                 task.wait(2)
                 break
             end
@@ -1810,7 +2034,7 @@ local function upgradePotion()
                 else
                     amountToUpgrade = math.floor(tbl._am / 3)
                 end
-                game:GetService("ReplicatedStorage"):WaitForChild("Network"):WaitForChild("UpgradePotionsMachine_Activate"):InvokeServer(potionId, amountToUpgrade)
+                Network:WaitForChild("UpgradePotionsMachine_Activate"):InvokeServer(potionId, amountToUpgrade)
                 task.wait(2)
                 break
             elseif tbl.tn >= 3 and tbl._am ~= nil and tbl._am >= 4 then
@@ -1819,7 +2043,7 @@ local function upgradePotion()
                 else
                     amountToUpgrade = math.floor(tbl._am / 4)
                 end
-                game:GetService("ReplicatedStorage"):WaitForChild("Network"):WaitForChild("UpgradePotionsMachine_Activate"):InvokeServer(potionId, amountToUpgrade)
+                Network:WaitForChild("UpgradePotionsMachine_Activate"):InvokeServer(potionId, amountToUpgrade)
                 task.wait(2)
                 break
             end
@@ -1841,7 +2065,7 @@ local function checkAndRedeemRankRewards()
         if RankStars >= totalRankStars then
             if not clientSaveGet.RedeemedRankRewards[tostring(questNum)] then -- [num] num has to be string
                 -- print("Redeeming Reward:", questNum)
-                ReplicatedStorage:WaitForChild("Network"):WaitForChild("Ranks_ClaimReward"):FireServer(questNum)
+                Network:WaitForChild("Ranks_ClaimReward"):FireServer(questNum)
                 break
             end
         end
@@ -1850,16 +2074,16 @@ end
 
 
 if maxZoneData.ZoneNumber >= 99 and PlaceId == 8737899170 then
-    game:GetService("ReplicatedStorage"):WaitForChild("Network")["World2Teleport"]:InvokeServer()
+    Network["World2Teleport"]:InvokeServer()
     task.wait(10)
 end
 
 
-ReplicatedStorage:WaitForChild("Network"):WaitForChild("ForeverPacks: Claim Free"):InvokeServer("Default")  -- collect free foreverpack
+Network:WaitForChild("ForeverPacks: Claim Free"):InvokeServer("Default")  -- collect free foreverpack
 
 if not clientSaveGet.PickedStarterPet then
-    print("New Account Detected... Picking Starter Pets.")
-    ReplicatedStorage:WaitForChild("Network"):WaitForChild("Pick Starter Pets"):InvokeServer(unpack({"Cat", "Dog"}))
+    -- print("New Account Detected... Picking Starter Pets.")
+    Network:WaitForChild("Pick Starter Pets"):InvokeServer(unpack({"Cat", "Dog"}))
     task.wait(5)
 end
 
@@ -1892,7 +2116,7 @@ task.spawn(function()
         end
         
         if hypeCmds.IsActive() and hypeCmds.GetTimeRemaining() == 0 and not hypeCmds.IsCompleted() then
-            game:GetService("ReplicatedStorage"):WaitForChild("Network"):WaitForChild("Hype Wheel: Claim"):InvokeServer()
+            Network:WaitForChild("Hype Wheel: Claim"):InvokeServer()
         end
 
         if Active:FindFirstChild("StairwayToHeaven") then 
@@ -1913,11 +2137,15 @@ task.spawn(function()
         if LocalPlayer.PlayerGui.MasteryPerk.Enabled then
             LocalPlayer.PlayerGui.MasteryPerk.Enabled = false
         end
+
+        if LocalPlayer.PlayerGui.Message.Enabled then
+            LocalPlayer.PlayerGui.Message.Enabled = false
+        end
     end
 end)
 
 
-print("Autorank Starting...")
+-- print("Autorank Starting...")
 teleportToMaxZone()
 getBestEggData()
 getBestEggPets()
@@ -1945,10 +2173,10 @@ while rebirthNotDone do
         while true do
             task.wait()
             local nextZoneName, nextZoneData = zoneCmds.GetNextZone()
-            local success, _ = ReplicatedStorage.Network.Zones_RequestPurchase:InvokeServer(nextZoneName)
+            local success, _ = Network.Zones_RequestPurchase:InvokeServer(nextZoneName)
             if success then
                 boughtNewZone = true
-                print("Successfully purchased " .. nextZoneName)
+                -- print("Successfully purchased " .. nextZoneName)
                 startAutoHatchEggDelay = tick()
                 task.wait(1)
             else
@@ -1961,11 +2189,11 @@ while rebirthNotDone do
         end
     end
 
-    if getgenv().autoWorldConfig.AUTO_REBIRTH and rebirthCmds.GetCurrentRebirth().RebirthNumber < getgenv().autoWorldConfig.REBIRTH_TO_REACH then
+    if getgenv().autoWorldConfig.AUTO_REBIRTH then
         pcall(function()
             if maxZoneData.ZoneNumber >= rebirthZone then
-                print("Rebirthing")
-                ReplicatedStorage.Network.Rebirth_Request:InvokeServer(tostring(rebirthNumber))
+                -- print("Rebirthing")
+                Network.Rebirth_Request:InvokeServer(tostring(rebirthNumber))
                 task.wait(15)
                 nextRebirthData = rebirthCmds.GetNextRebirth()
                 if nextRebirthData then
@@ -1979,8 +2207,25 @@ while rebirthNotDone do
     getBestEggData()
     getBestEggPets()
 
-    if (tick() - startAutoHatchEggDelay) >= autoHatchEggDelay and eggHatchedBefore ~= eggData.eggNumber then
-        if checkEnoughCoinsToHatch(1) then
+    if maxZoneData.ZoneNumber < getgenv().autoWorldConfig.ZONE_TO_REACH and 
+    (tick() - startAutoHatchEggDelay) >= autoHatchEggDelay and 
+    eggHatchedBefore ~= eggData.eggNumber then
+
+        local bestEggPrice
+        for eggName, eggTbl in require(Library.Directory.Eggs) do
+            pcall(function()
+                if eggData.name == eggName then
+                    bestEggPrice = require(Library.Balancing.CalcEggPrice)(eggTbl)
+                end
+            end)
+        end
+        
+        local maxAmountToHatch = math.floor(currencyCmds.Get(worldCoin) / bestEggPrice)
+        if maxAmountToHatch >= 40 then  -- limit hatch incase too many
+            maxAmountToHatch = 40
+        end
+
+        if checkEnoughCoinsToHatch(maxAmountToHatch) then
             teleportAndHatch()
             currentZone = nil
             teleportToMaxZone()
@@ -2001,6 +2246,7 @@ while rebirthNotDone do
             questName = checkType(tbl["Type"])
             questAmount = tbl["Amount"]
             questProgress = tbl["Progress"]
+            breakableType = tbl.BreakableType
             if tbl["PotionTier"] ~= nil and tbl["PotionTier"] > 1 then
                 questPotionTier = tbl["PotionTier"] - 1
             else
@@ -2011,6 +2257,7 @@ while rebirthNotDone do
             else
                 questEnchantTier = 1  -- default questEnchantTier 1, it will only enchant tier 1 when "collecting enchant"
             end
+
             questActualAmount = nil
             callByBoss = false
 
@@ -2029,6 +2276,7 @@ while rebirthNotDone do
                                 local questId = clientSaveGet.Goals[goalsNumber]["Type"]
                                 if not thereIsAlreadySomethingInThisArea() and checkType(questId) == "BEST_LUCKYBLOCK" then
                                     consumeRandomEvent("Mini Lucky Block", "MiniLuckyBlock_Consume")
+                                    startAutoHatchEggDelay = tick()
                                     while thereIsAlreadySomethingInThisArea() do
                                         task.wait(0.3)
                                     end
@@ -2055,6 +2303,7 @@ while rebirthNotDone do
                                 local questId = clientSaveGet.Goals[goalsNumber]["Type"]
                                 if not thereIsAlreadySomethingInThisArea() and checkType(questId) == "BEST_PINATA" then
                                     consumeRandomEvent("Mini Pinata", "MiniPinata_Consume")
+                                    startAutoHatchEggDelay = tick()
                                     while thereIsAlreadySomethingInThisArea() do
                                         task.wait(0.3)
                                     end
@@ -2081,6 +2330,7 @@ while rebirthNotDone do
                                 local questId = clientSaveGet.Goals[goalsNumber]["Type"]
                                 if not thereIsAlreadySomethingInThisArea() and (checkType(questId) == "BEST_COMET" or checkType(questId) == "COMET") then
                                     consumeRandomEvent("Comet", "Comet_Spawn")
+                                    startAutoHatchEggDelay = tick()
                                     while thereIsAlreadySomethingInThisArea() do
                                         task.wait(0.3)
                                     end
@@ -2116,6 +2366,7 @@ while rebirthNotDone do
                             local questId = clientSaveGet.Goals[goalsNumber]["Type"]
                             if not thereIsAlreadySomethingInThisArea() and (checkType(questId) == "BEST_COIN_JAR" or checkType(questId) == "COIN_JAR") then
                                 consumeRandomEvent(coinJar, "CoinJar_Spawn")
+                                startAutoHatchEggDelay = tick()
                                 while thereIsAlreadySomethingInThisArea() do
                                     task.wait(0.3)
                                 end
@@ -2136,10 +2387,12 @@ while rebirthNotDone do
                 -- print("Underworld Boss Chest Cooldown Time: ".. (os.time() - underWorldBossChestCooldownStart))
                 -- print("No Path Forest Boss Chest Cooldown Time: ".. (os.time() - noPathForestBossChestCooldownStart))
                 -- print("Heaven Gates Boss Chest Cooldown Time: ".. (os.time() - heavenGatesBossChestCooldownStart))
-                if PlaceId == 8737899170 and (os.time() - beachBossChestCooldownStart >= bossChestCooldown or
-                os.time() - underWorldBossChestCooldownStart >= bossChestCooldown or
-                os.time() - noPathForestBossChestCooldownStart >= bossChestCooldown or
-                os.time() - heavenGatesBossChestCooldownStart >= bossChestCooldown) then
+
+                if PlaceId == 8737899170 and 
+                ((os.time() - beachBossChestCooldownStart >= bossChestCooldown and maxZoneData.ZoneNumber >= 20) or
+                (os.time() - underWorldBossChestCooldownStart >= bossChestCooldown and maxZoneData.ZoneNumber >= 46) or
+                (os.time() - noPathForestBossChestCooldownStart >= bossChestCooldown and maxZoneData.ZoneNumber >= 70) or
+                (os.time() - heavenGatesBossChestCooldownStart >= bossChestCooldown and maxZoneData.ZoneNumber >= 95)) then
                     callByBoss = true
                     autoBossChest()
                     currentZone = nil
@@ -2170,6 +2423,7 @@ while rebirthNotDone do
             -- Upgrading Pets
             elseif questName == "BEST_GOLD_PET" then
                 -- print("Doing Quest:", questName)
+                startAutoHatchEggDelay = time()
                 while checkType(clientSaveGet.Goals[goalsNumber]["Type"]) == "BEST_GOLD_PET" do
                     task.wait()
                     local usedGoldMachine
@@ -2191,6 +2445,7 @@ while rebirthNotDone do
 
             elseif questName == "BEST_RAINBOW_PET" then
                 -- print("Doing Quest:", questName)
+                startAutoHatchEggDelay = time()
                 while checkType(clientSaveGet.Goals[goalsNumber]["Type"]) == "BEST_RAINBOW_PET" do
                     task.wait()
                     local usedRainbowMachine
@@ -2262,9 +2517,19 @@ while rebirthNotDone do
                 
 
             -- Hatch Eggs
+            elseif questName == "EGG" then
+                if checkEnoughCoinsToHatch(tonumber(questActualAmount)) then
+                    -- print("Doing Quest:", questName)
+                    startAutoHatchEggDelay = time()
+                    BEST_EGG = true
+                    teleportAndHatch()
+                    currentZone = nil
+                    teleportToMaxZone()
+                end
             elseif questName == "BEST_EGG" then
                 if checkEnoughCoinsToHatch(tonumber(questActualAmount)) then
                     -- print("Doing Quest:", questName)
+                    startAutoHatchEggDelay = time()
                     BEST_EGG = true
                     teleportAndHatch()
                     currentZone = nil
@@ -2273,6 +2538,7 @@ while rebirthNotDone do
             elseif maxZoneData.ZoneNumber >= getgenv().autoWorldConfig.ZONE_TO_REACH and questName == "HATCH_RARE_PET" then
                 if checkEnoughCoinsToHatch(1000) then
                     -- print("Doing Quest:", questName)
+                    startAutoHatchEggDelay = time()
                     if len(clientSaveGet.Goals) > 0 then
                         HATCH_RARE_PET = true
                         teleportAndHatch()
@@ -2285,7 +2551,8 @@ while rebirthNotDone do
             elseif questName == "FISHING" and PlaceId == 8737899170 then
                 -- print("Doing Quest:", questName)
                 -- print("Doing Fishing")
-                teleportToFishing()
+                teleportToInstance("Fishing")
+                startAutoHatchEggDelay = time()
                 if not fishingOptimized then
                     fishingOptimized = true
                     optimizeFishing()
@@ -2298,6 +2565,7 @@ while rebirthNotDone do
                 -- print("Doing Quest:", questName)
                 if len(clientSaveGet.Goals) > 0 then
                     teleportToDigsite()
+                    startAutoHatchEggDelay = time()
                     -- Delete digsite texture (SAVE CPU)
                     for _, v in pairs(Active.Digsite:GetChildren()) do
                         if string.find(v.Name, "hill") or string.find(v.Name, "Flower") or string.find(v.Name, "rock") or string.find(v.Name, "Meshes") or string.find(v.Name, "Sign") or string.find(v.Name, "Wood") or v.Name == "Model" then
@@ -2308,6 +2576,64 @@ while rebirthNotDone do
                     currentZone = nil
                     teleportToMaxZone()
                 end
+
+            elseif questName == "SPAWN_OBBY" and PlaceId == 8737899170 then
+                teleportToInstance("SpawnObby")
+                startAutoHatchEggDelay = time()
+                task.wait(2)
+                startSpawnObby()
+
+            elseif questName == "MINEFIELD" and PlaceId == 8737899170 then
+                teleportToInstance("Minefield")
+                startAutoHatchEggDelay = time()
+                task.wait(2)
+                startMinefield()
+
+            elseif questName == "JUNGLE_OBBY" and PlaceId == 8737899170 then
+                teleportToInstance("JungleObby")
+                startAutoHatchEggDelay = time()
+                task.wait(2)
+                startJungleObby()
+
+            elseif questName == "ATLANTIS" and PlaceId == 8737899170 then
+                teleportToInstance("Atlantis")
+                startAutoHatchEggDelay = time()
+                task.wait(2)
+                startAtlantis()
+
+            elseif questName == "PYRAMID_OBBY" and PlaceId == 8737899170 then
+                teleportToInstance("PyramidObby")
+                startAutoHatchEggDelay = time()
+                task.wait(2)
+                startPyramidObby()
+
+            elseif questName == "ICE_OBBY" and PlaceId == 8737899170 then
+                teleportToInstance("IceObby")
+                startAutoHatchEggDelay = time()
+                task.wait(2)
+                startIceObby()
+
+            -- ignore sledrace (have to wait for progressing race to finish)
+
+            elseif maxZoneData.ZoneNumber >= 6 and questName == "BREAKABLE" and breakableType == "Present" then
+                -- print("Breaking Present")
+                teleportToPresentOrSafe("6 | Cherry Blossom")
+                startAutoHatchEggDelay = time()
+                repeat
+                    task.wait(1)
+                until require(game:GetService("ReplicatedStorage").Library.Client.Save).Get().Goals[goalsNumber].BreakableType ~= "Present"
+                currentZone = nil
+                teleportToMaxZone()
+
+            elseif maxZoneData.ZoneNumber >= 22 and questName == "BREAKABLE" and breakableType == "Safe" then
+                -- print("Breaking Safe")
+                teleportToPresentOrSafe("22 | Shipwreck")
+                startAutoHatchEggDelay = time()
+                repeat
+                    task.wait(1)
+                until require(game:GetService("ReplicatedStorage").Library.Client.Save).Get().Goals[goalsNumber].BreakableType ~= "Safe"
+                currentZone = nil
+                teleportToMaxZone()
             end
         end
     end
@@ -2315,9 +2641,7 @@ while rebirthNotDone do
     task.wait()
 end
 
-print("Done with rank")
-
-
+-- print("Done with rank")
 
 
 
