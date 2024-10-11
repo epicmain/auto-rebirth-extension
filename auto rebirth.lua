@@ -1769,7 +1769,7 @@ local function checkEnoughCoinsToHatch(amountOfEggs)
     local bestEggPrice
     for eggName, eggTbl in require(Library.Directory.Eggs) do
         pcall(function()
-            if .name == eggName then
+            if eggData.name == eggName then
                 bestEggPrice = require(Library.Balancing.CalcEggPrice)(eggTbl)
             end
         end)
