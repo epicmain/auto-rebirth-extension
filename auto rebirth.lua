@@ -463,7 +463,7 @@ end
 
 
 local function DeleteAllTextures()
-    for _, v in pairs(game:GetDescendants()) do
+    for _, v in pairs(map:GetDescendants()) do
         if v:IsA("Part") or v:IsA("BasePart") then
             v.Transparency = 1
         end
@@ -2195,6 +2195,7 @@ while rebirthNotDone do
                 print("Rebirthing")
                 Network.Rebirth_Request:InvokeServer(tostring(rebirthNumber))
                 task.wait(15)
+                maxZoneName, maxZoneData = zoneCmds.GetMaxOwnedZone()
                 nextRebirthData = rebirthCmds.GetNextRebirth()
                 if nextRebirthData then
                     rebirthNumber = nextRebirthData.RebirthNumber
@@ -2323,6 +2324,7 @@ while rebirthNotDone do
                 print("Doing Quest:", questName)
                 for itemId, tbl in inventory.Misc do
                     if tbl.id == "Comet" then
+                        print(tbl.id, itemId)
                         for i=1, questActualAmount do
                             while true do
                                 task.wait()
@@ -2397,9 +2399,9 @@ while rebirthNotDone do
                     autoBossChest()
                     currentZone = nil
                     teleportToMaxZone()
-                elseif questName == "COLLECT_ENCHANT" and checkEnoughEnchant() then
+                elseif maxZoneData.ZoneNumber >= 16 and questName == "COLLECT_ENCHANT" and checkEnoughEnchant() then
                     upgradeEnchant()
-                elseif questName == "COLLECT_POTION" and checkEnoughPotion() then
+                elseif maxZoneData.ZoneNumber >= 13 and questName == "COLLECT_POTION" and checkEnoughPotion() then
                     upgradePotion()
                 elseif PlaceId == 8737899170 then
                     buyVendingMachine()
@@ -2407,13 +2409,13 @@ while rebirthNotDone do
 
 
             -- Upgrading
-            elseif questName == "UPGRADE_POTION" then
+            elseif maxZoneData.ZoneNumber >= 13 and questName == "UPGRADE_POTION" then
                 print("Doing Quest:", questName)
                 -- tier 3 upgrade to 4 requires 4
                 -- tier 1/2 upgrade to 2/3 requires 3
                 upgradePotion()
 
-            elseif questName == "UPGRADE_ENCHANT" then
+            elseif maxZoneData.ZoneNumber >= 16 and questName == "UPGRADE_ENCHANT" then
                 print("Doing Quest:", questName)
                 -- tier 4 upgrade to 5 requires 7
                 -- tier 1-3 upgrade to 2-4 requires 5
@@ -2421,7 +2423,7 @@ while rebirthNotDone do
 
 
             -- Upgrading Pets
-            elseif questName == "BEST_GOLD_PET" then
+            elseif maxZoneData.ZoneNumber >= 10 and questName == "BEST_GOLD_PET" then
                 print("Doing Quest:", questName)
                 startAutoHatchEggDelay = time()
                 while checkType(clientSaveGet.Goals[goalsNumber]["Type"]) == "BEST_GOLD_PET" do
@@ -2443,7 +2445,7 @@ while rebirthNotDone do
                 currentZone = nil
                 teleportToMaxZone()
 
-            elseif questName == "BEST_RAINBOW_PET" then
+            elseif maxZoneData.ZoneNumber >= 31 and questName == "BEST_RAINBOW_PET" then
                 print("Doing Quest:", questName)
                 startAutoHatchEggDelay = time()
                 while checkType(clientSaveGet.Goals[goalsNumber]["Type"]) == "BEST_RAINBOW_PET" do
@@ -2548,7 +2550,7 @@ while rebirthNotDone do
                 end
 
             -- DIGGING AND FISHING
-            elseif questName == "FISHING" and PlaceId == 8737899170 then
+            elseif maxZoneData.ZoneNumber >= 27 and questName == "FISHING" and PlaceId == 8737899170 then
                 print("Doing Quest:", questName)
                 print("Doing Fishing")
                 teleportToInstance("Fishing")
@@ -2561,7 +2563,7 @@ while rebirthNotDone do
                 currentZone = nil
                 teleportToMaxZone()
 
-            elseif questName == "DIGSITE" and PlaceId == 8737899170 then
+            elseif maxZoneData.ZoneNumber >= 30 and questName == "DIGSITE" and PlaceId == 8737899170 then
                 print("Doing Quest:", questName)
                 if len(clientSaveGet.Goals) > 0 then
                     teleportToDigsite()
@@ -2577,37 +2579,37 @@ while rebirthNotDone do
                     teleportToMaxZone()
                 end
 
-            elseif questName == "SPAWN_OBBY" and PlaceId == 8737899170 then
+            elseif maxZoneData.ZoneNumber >= 5 and questName == "SPAWN_OBBY" and PlaceId == 8737899170 then
                 teleportToInstance("SpawnObby")
                 startAutoHatchEggDelay = time()
                 task.wait(2)
                 startSpawnObby()
 
-            elseif questName == "MINEFIELD" and PlaceId == 8737899170 then
+            elseif maxZoneData.ZoneNumber >= 11 and questName == "MINEFIELD" and PlaceId == 8737899170 then
                 teleportToInstance("Minefield")
                 startAutoHatchEggDelay = time()
                 task.wait(2)
                 startMinefield()
 
-            elseif questName == "JUNGLE_OBBY" and PlaceId == 8737899170 then
+            elseif maxZoneData.ZoneNumber >= 18 and questName == "JUNGLE_OBBY" and PlaceId == 8737899170 then
                 teleportToInstance("JungleObby")
                 startAutoHatchEggDelay = time()
                 task.wait(2)
                 startJungleObby()
 
-            elseif questName == "ATLANTIS" and PlaceId == 8737899170 then
+            elseif maxZoneData.ZoneNumber >= 23 and questName == "ATLANTIS" and PlaceId == 8737899170 then
                 teleportToInstance("Atlantis")
                 startAutoHatchEggDelay = time()
                 task.wait(2)
                 startAtlantis()
 
-            elseif questName == "PYRAMID_OBBY" and PlaceId == 8737899170 then
+            elseif maxZoneData.ZoneNumber >= 31 and questName == "PYRAMID_OBBY" and PlaceId == 8737899170 then
                 teleportToInstance("PyramidObby")
                 startAutoHatchEggDelay = time()
                 task.wait(2)
                 startPyramidObby()
 
-            elseif questName == "ICE_OBBY" and PlaceId == 8737899170 then
+            elseif maxZoneData.ZoneNumber >= 38 and questName == "ICE_OBBY" and PlaceId == 8737899170 then
                 teleportToInstance("IceObby")
                 startAutoHatchEggDelay = time()
                 task.wait(2)
