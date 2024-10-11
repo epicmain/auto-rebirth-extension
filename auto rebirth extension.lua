@@ -366,15 +366,35 @@ antiAFK()
 while true do
     task.wait()
     local activeChild = #Active:GetChildren()
+ 
     zoneName = require(game:GetService("ReplicatedStorage").Library.Client.ZoneCmds).GetMaxOwnedZone()
+    local zoneName
+    pcall(function()
+        for i=1, 4 do 
+            if require(game:GetService("ReplicatedStorage").Library.Client.Save).Get().Goals[tostring(i)].BreakableType ~= "Safe" then
+                zoneName = "Cherry Blossom"
+            elseif require(game:GetService("ReplicatedStorage").Library.Client.Save).Get().Goals[tostring(i)].BreakableType ~= "Present" then
+                zoneName = "Shipwreck"
+            end
+        end
+    end)
+
     if activeChild == 0 then
-        if len(require(Client.BreakableCmds).AllByZoneAndClass(zoneName, "Chest")) >= 1 then
+        if len(require(Client.BreakableCmds).AllByZoneAndClass(zoneName, "Chest")) >= 1 and 
+        zoneName ~= "Beach" and 
+        zoneName ~= "Underworld" and 
+        zoneName ~= "No Path Forest" and 
+        zoneName ~= "Heaven Gates" then
             tapAuraAndChest(true)
         else
             tapAuraAndChest(false)
         end
 
-        if len(require(Client.BreakableCmds).AllByZoneAndClass(zoneName, "Chest")) >= 1 then
+        if len(require(Client.BreakableCmds).AllByZoneAndClass(zoneName, "Chest")) >= 1 and 
+        zoneName ~= "Beach" and 
+        zoneName ~= "Underworld" and 
+        zoneName ~= "No Path Forest" and 
+        zoneName ~= "Heaven Gates" then
             normalOrChest = "Chest"
             petTargetChestAndBreakables()
         else
