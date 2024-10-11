@@ -111,6 +111,7 @@ local currentMaxHatch = eggCmds.GetMaxHatch()
 local eggData
 local eggCFrame
 local eggHatchedBefore = 0
+local maxAmountToHatch
 -- ^^^ Egg hatching variables ^^^
 
 --- vvv EggSlot variables vvv
@@ -1857,12 +1858,16 @@ local function teleportAndHatch()
                 break
             end
         end
-    elseif checkEnoughCoinsToHatch(math.ceil(60 / currentMaxHatch)) then
-        for i=1, math.ceil(60 / currentMaxHatch) do
+    else
+        local amountToHatch
+        if math.floor(maxAmountToHatch / currentMaxHatch) > 0 then
+            amountToHatch = math.floor(maxAmountToHatch / currentMaxHatch)
+        else
+            amountToHatch = 1
+        end
+        for i=1, amountToHatch do
             autoHatchEgg()
         end
-    else
-        autoHatchEgg()
     end
         
         
@@ -2221,7 +2226,7 @@ while rebirthNotDone do
             end)
         end
         
-        local maxAmountToHatch = math.floor(currencyCmds.Get(worldCoin) / bestEggPrice)
+        maxAmountToHatch = math.floor(currencyCmds.Get(worldCoin) / bestEggPrice)
         if maxAmountToHatch >= 40 then  -- limit hatch incase too many
             maxAmountToHatch = 40
         end
