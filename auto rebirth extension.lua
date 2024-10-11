@@ -368,17 +368,17 @@ while true do
     local activeChild = #Active:GetChildren()
  
     zoneName = require(game:GetService("ReplicatedStorage").Library.Client.ZoneCmds).GetMaxOwnedZone()
-    local zoneName
     pcall(function()
         for i=1, 4 do 
-            if require(game:GetService("ReplicatedStorage").Library.Client.Save).Get().Goals[tostring(i)].BreakableType ~= "Safe" then
+            if require(game:GetService("ReplicatedStorage").Library.Client.Save).Get().Goals[tostring(i)].BreakableType == "Safe" then
                 zoneName = "Cherry Blossom"
-            elseif require(game:GetService("ReplicatedStorage").Library.Client.Save).Get().Goals[tostring(i)].BreakableType ~= "Present" then
+            elseif require(game:GetService("ReplicatedStorage").Library.Client.Save).Get().Goals[tostring(i)].BreakableType == "Present" then
                 zoneName = "Shipwreck"
             end
         end
     end)
 
+    print(zoneName)
     if activeChild == 0 then
         if len(require(Client.BreakableCmds).AllByZoneAndClass(zoneName, "Chest")) >= 1 and 
         zoneName ~= "Beach" and 
