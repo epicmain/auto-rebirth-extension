@@ -118,7 +118,6 @@ orb.CombineDelay = 0
 orb.CombineDistance = 400
 
 game:GetService("Players").LocalPlayer.PlayerGui.Notifications:Destroy()  -- delete notifs
-game:GetService("ReplicatedStorage").Assets.Models.RandomEvents:Destroy()  -- delete event
 -- hookfunction CreateFallingComet, CreateFallingLuckyBlock, CreateJar, CreateEvent, BeginEvent
 
 local randomEventFunctions = {"CreateEvent", "BeginEvent"}
@@ -357,6 +356,7 @@ local function petTargetChestAndBreakables()
             end)
         end
     end
+
     game:GetService("ReplicatedStorage"):WaitForChild("Network"):WaitForChild("Breakables_JoinPetBulk"):FireServer(unpack(args))
 end
 
@@ -378,7 +378,6 @@ while true do
         end
     end)
 
-    print(zoneName)
     if activeChild == 0 then
         if len(require(Client.BreakableCmds).AllByZoneAndClass(zoneName, "Chest")) >= 1 and 
         zoneName ~= "Beach" and 
@@ -404,5 +403,7 @@ while true do
         activateUlti()
     end
 end
+
+
 
 
