@@ -26,7 +26,7 @@ repeat
     task.wait()
 until game:GetService("Workspace").__THINGS and game:GetService("Workspace").__DEBRIS
 
-print("[CLIENT] Loaded Game")
+-- print("[CLIENT] Loaded Game")
 -- ^^^ Wait for game load ^^^
 
 
@@ -473,15 +473,15 @@ end
 
 
 local function teleportToMaxZone()
-    print("in teleportToMaxZone()")
+    -- print("in teleportToMaxZone()")
     maxZoneName, maxZoneData = zoneCmds.GetMaxOwnedZone()
-    print("Teleporting to: ", maxZoneName)
+    -- print("Teleporting to: ", maxZoneName)
     while currentZone == maxZoneName do
         maxZoneName, maxZoneData = zoneCmds.GetMaxOwnedZone()
         task.wait()
     end
     currentZone = maxZoneName
-    print("Teleporting to zone: " .. maxZoneName)
+    -- print("Teleporting to zone: " .. maxZoneName)
 
     local zonePath
     for _, v in pairs(map:GetChildren()) do
@@ -514,7 +514,7 @@ local function teleportToMaxZone()
     local closestBreakZone = nil
     for _, v in pairs(zonePath.INTERACT.BREAK_ZONES:GetChildren()) do
         local magnitude = (myHumanoidRootPart.Position - v.Position).Magnitude
-        print(magnitude)
+        -- print(magnitude)
         if magnitude <= dist then
             dist = magnitude
             closestBreakZone = v
@@ -528,10 +528,10 @@ local function teleportToMaxZone()
     require(game:GetService("ReplicatedStorage").Library.Client.PetCmds).Restore()
     task.wait(2)
     DeleteAllTextures()
-    print("Pets Restored.")
+    -- print("Pets Restored.")
 
     if maxZoneData.ZoneNumber >= getgenv().autoWorldConfig.ZONE_TO_REACH and rankCmds.GetMaxRank() >= getgenv().autoWorldConfig.RANK_TO_REACH and clientSaveGet.Rebirths >= getgenv().autoWorldConfig.REBIRTH_TO_REACH then
-        print("Reached selected zone, rebirth and rank")
+        -- print("Reached selected zone, rebirth and rank")
         rebirthNotDone = false
     end
 end
@@ -569,7 +569,7 @@ local function teleportToPresentOrSafe(zoneDetail)
     local closestBreakZone = nil
     for _, v in pairs(zonePath.INTERACT.BREAK_ZONES:GetChildren()) do
         local magnitude = (myHumanoidRootPart.Position - v.Position).Magnitude
-        print(magnitude)
+        -- print(magnitude)
         if magnitude <= dist then
             dist = magnitude
             closestBreakZone = v
@@ -583,7 +583,7 @@ local function teleportToPresentOrSafe(zoneDetail)
     require(game:GetService("ReplicatedStorage").Library.Client.PetCmds).Restore()
     task.wait(2)
     DeleteAllTextures()
-    print("Pets Restored.")
+    -- print("Pets Restored.")
 end
 
 
@@ -628,15 +628,15 @@ local function checkAndEquipBestSpecifiedEnchants()
                 local redo = true
                 -- 1. Check if equipped with best tier, 2. if not equipped, try to equip
                 if clientSaveGet.EquippedEnchants[tostring(enchantSlotNumber)] == bestEnchants[enchantName]["id"] then  -- EquippedEnchants[string number]
-                    print("Best enchant: ", enchantName, " already equipped.")
+                    -- print("Best enchant: ", enchantName, " already equipped.")
                 else
-                    print("No best enchant found for slot ", enchantSlotNumber)
+                    -- print("No best enchant found for slot ", enchantSlotNumber)
                     enchantCmds.Unequip(enchantSlotNumber)
                     task.wait(1)
                     enchantCmds.Equip(bestEnchants[enchantName]["id"])
                     task.wait(1)
                     if clientSaveGet.EquippedEnchants[tostring(enchantSlotNumber)] == bestEnchants[enchantName]["id"] then
-                        print("Empty slot equipped ", enchantName)
+                        -- print("Empty slot equipped ", enchantName)
                     else
                         local secondaryBestEnchantTier = bestEnchants[enchantName]["tier"]
                         while redo do
@@ -657,7 +657,7 @@ local function checkAndEquipBestSpecifiedEnchants()
                                     end
                                 end
                             else
-                                print("No enchant found for ", enchantSlotNumber, " slot.")
+                                -- print("No enchant found for ", enchantSlotNumber, " slot.")
                                 redo = false
                             end
                         end
@@ -703,7 +703,7 @@ local function checkAndPurchaseUpgrades()
                 -- Check if owned or affordable
                 if not upgradeCmds.Owns(ability, mapName) and currencyCmds.Get("Diamonds") > gemAmount then
                     task.wait(1)
-                    print("Bought " .. ability .. " from " .. mapName)
+                    -- print("Bought " .. ability .. " from " .. mapName)
                     upgradeCmds.Purchase(ability, mapName)
                     table.remove(upgrades, i)
                     currentZone = nil
@@ -732,7 +732,7 @@ end
 local function checkAndRedeemGift()
     for giftIndex, seconds in pairs(giftTiming) do
         if clientSaveGet.FreeGiftsTime >= seconds then
-            print("Redeeming Free Gift ", giftIndex)
+            -- print("Redeeming Free Gift ", giftIndex)
             ReplicatedStorage:WaitForChild("Network"):WaitForChild("Redeem Free Gift"):InvokeServer(giftIndex)
             task.wait(1) -- wait to collect gifts properly
         else
@@ -753,7 +753,7 @@ local function checkAndConsumeFruits()
         task.wait(0.5)
         if fruitCmds.GetActiveFruits()[tbl.id] ~= nil then
             if (#fruitCmds.GetActiveFruits()[tbl.id]["Normal"] < maxFruitQueue) and (tbl._am ~= nil) then
-                print("Continue consuming ", tbl.id)
+                -- print("Continue consuming ", tbl.id)
                 if tbl._am < fruitCmds.GetMaxConsume(fruitId) then
                     fruitCmds.Consume(fruitId, tonumber(tbl._am))
                 else
@@ -771,13 +771,13 @@ local function checkAndConsumeGifts()
     for itemId, value in pairs(inventory.Misc) do
         if string.find(value.id:lower(), "bundle") or string.find(value.id:lower(), "gift bag") or (value.id == "Mini Chest") then
             if not value._am then
-                print("Consuming ", value.id)
+                -- print("Consuming ", value.id)
                 ReplicatedStorage:WaitForChild("Network"):WaitForChild("GiftBag_Open"):InvokeServer(value.id)
             elseif value._am < 100 then
-                print("Consuming ", value.id)
+                -- print("Consuming ", value.id)
                 ReplicatedStorage:WaitForChild("Network"):WaitForChild("GiftBag_Open"):InvokeServer(value.id, value._am)
             else
-                print("Consuming ", value.id)
+                -- print("Consuming ", value.id)
                 ReplicatedStorage:WaitForChild("Network"):WaitForChild("GiftBag_Open"):InvokeServer(value.id, 100)
             end
             task.wait(1)
@@ -800,7 +800,7 @@ local function checkAndConsumePotions()
             end
         end
         if highestTierPotion > 0 then
-            print("Consuming ", potionName, ", Tier: ", highestTierPotion)
+            -- print("Consuming ", potionName, ", Tier: ", highestTierPotion)
             task.wait(1)
             potionCmds.Consume(highestTierPotionId)
         end
@@ -811,7 +811,7 @@ end
 local function consumeGoalsPotion(questPotionTier)
     for itemId, value in pairs(inventory.Potion) do
         if questPotionTier == value.tn then
-            print("Consuming ", value.id, ", Tier: ", questPotionTier)
+            -- print("Consuming ", value.id, ", Tier: ", questPotionTier)
             potionCmds.Consume(itemId)
             task.wait(1)
             break
@@ -825,13 +825,13 @@ local function checkAndConsumeToys()
     for itemId, value in pairs(inventory.Misc) do
         if value.id == "Squeaky Toy" then
             if not buffCmds.IsActive("Squeaky Toy") then
-                print("Consuming Squeak Toy.")
+                -- print("Consuming Squeak Toy.")
                 task.wait(1)
                 ReplicatedStorage:WaitForChild("Network"):WaitForChild("SqueakyToy_Consume"):InvokeServer()
             end
         elseif value.id == "Toy Bone" then
             if not buffCmds.IsActive("Toy Bone") then
-                print("Consuming Toy Bone")
+                -- print("Consuming Toy Bone")
                 task.wait(1)
                 ReplicatedStorage:WaitForChild("Network"):WaitForChild("ToyBone_Consume"):InvokeServer()
             end
@@ -888,7 +888,7 @@ local function teleportToDigsite()
         detectLoad:Disconnect()
         task.wait(1)
     end
-    print("Waiting for digsite blocks to load...")
+    -- print("Waiting for digsite blocks to load...")
     while #Active.Digsite.Important.ActiveBlocks:GetChildren() < 5 do
         task.wait()
     end
@@ -928,7 +928,7 @@ end
 
 
 local function hidePlayerFishing()
-    print("Hiding player fishing...")
+    -- print("Hiding player fishing...")
     myHumanoidRootPart.Anchored = true
     myHumanoidRootPart.CFrame = myHumanoidRootPart.CFrame + Vector3.new(Random.new():NextInteger(-10, 10), -20, Random.new():NextInteger(-10, 10))
 
@@ -944,7 +944,7 @@ end
 
 
 local function optimizeFishing()
-    print("Optimizing fishing")
+    -- print("Optimizing fishing")
     local Fishing = Active.Fishing
     Fishing.Debris:ClearAllChildren()
 
@@ -1072,7 +1072,7 @@ local function breakChest(zone)
         task.wait()
         if string.find(breakable.Name, chest) then
             brokeChest = true
-            print("Broke chest")
+            -- print("Broke chest")
         end
     end)
 
@@ -1131,7 +1131,7 @@ local function autoBossChest()
             local questId = clientSaveGet.Goals[goalsNumber]["Type"]
             if noCooldown and 
             (checkType(questId) == "COLLECT_POTION" or checkType(questId) == "COLLECT_ENCHANT")  then
-                print("Starting " .. zoneName)
+                -- print("Starting " .. zoneName)
 
                 teleportToVendingOrBossChestZone(zoneName)
                 waitForVendingOrBossChestLoad(zoneName)
@@ -1150,10 +1150,10 @@ local function autoBossChest()
                             timerFound = true
 
                             if timer == "00:00" then
-                                print(zoneName .. " chest is available")
+                                -- print(zoneName .. " chest is available")
                                 breakChest(zoneName)
                             -- else
-                            --     print(zoneName .. " chest is not available " .. timer)
+                            --     -- print(zoneName .. " chest is not available " .. timer)
                             end
 
                             if zoneName == "Beach" then
@@ -1183,7 +1183,7 @@ local function autoBossChest()
         end)
     end
     currentZone = nil
-    print("teleporting back")
+    -- print("teleporting back")
     teleportToMaxZone()
 end
 
@@ -1224,7 +1224,7 @@ local function buyVendingMachine()
             local questId = clientSaveGet.Goals[goalsNumber]["Type"]
             if (vendingMachineName == "FruitVendingMachine1" or vendingMachineName == "FruitVendingMachine2") and 
             vendingMachineStock >= 4 then
-                print("Buying Fruits " .. zoneName)
+                -- print("Buying Fruits " .. zoneName)
 
                 teleportToVendingOrBossChestZone(zoneName)
                 waitForVendingOrBossChestLoad(zoneName)
@@ -1238,7 +1238,7 @@ local function buyVendingMachine()
             elseif checkType(questId) == "COLLECT_POTION" and 
             (vendingMachineName == "PotionVendingMachine1" or vendingMachineName == "PotionVendingMachine2") and 
             vendingMachineStock > 0 then
-                print("Buying Potion: " .. zoneName)
+                -- print("Buying Potion: " .. zoneName)
 
                 teleportToVendingOrBossChestZone(zoneName)
                 waitForVendingOrBossChestLoad(zoneName)
@@ -1252,7 +1252,7 @@ local function buyVendingMachine()
             elseif checkType(questId) == "COLLECT_ENCHANT" and 
             (vendingMachineName == "EnchantVendingMachine1" or vendingMachineName == "EnchantVendingMachine2") and 
             vendingMachineStock > 0 then
-                print("Buying Enchant " .. zoneName)
+                -- print("Buying Enchant " .. zoneName)
 
                 teleportToVendingOrBossChestZone(zoneName)
                 waitForVendingOrBossChestLoad(zoneName)
@@ -1269,7 +1269,7 @@ end
 
 
 local function startFishing()
-    print("Start Fishing...")
+    -- print("Start Fishing...")
     if Active.Fishing.Interactable:FindFirstChild("WoodenFishingRod") then
         Network:WaitForChild("Instancing_FireCustomFromClient"):FireServer("Fishing", "ClaimRod")
     end
@@ -1292,25 +1292,25 @@ local function startFishing()
         local proFishingRodPrice = 100000
 
         if not fishingRodItem["Sturdy Fishing Rod"].Buy.Cost.SoldOut.Visible and fishingCoins >= sturdyFishingRodPrice then
-            print("Buying Sturdy Fishing Rod")
+            -- print("Buying Sturdy Fishing Rod")
             Network.FishingMerchant_PurchaseRod:InvokeServer("Sturdy Fishing Rod")
             task.wait(3)
             break
 
         elseif not fishingRodItem["Advanced Fishing Rod"].Buy.Cost.SoldOut.Visible and fishingCoins >= advancedFishingRodPrice then
-            print("Buying Advanced Fishing Rod")
+            -- print("Buying Advanced Fishing Rod")
             Network.FishingMerchant_PurchaseRod:InvokeServer("Advanced Fishing Rod")
             task.wait(3)
             break
 
         elseif not fishingRodItem["Super Fishing Rod"].Buy.Cost.SoldOut.Visible and fishingCoins >= superFishingRodPrice then
-            print("Buying Super Fishing Rod")
+            -- print("Buying Super Fishing Rod")
             Network.FishingMerchant_PurchaseRod:InvokeServer("Super Fishing Rod")
             task.wait(3)
             break
 
         elseif not fishingRodItem["Pro Fishing Rod"].Buy.Cost.SoldOut.Visible and fishingCoins >= proFishingRodPrice then
-            print("Buying Pro Fishing Rod")
+            -- print("Buying Pro Fishing Rod")
             Network.FishingMerchant_PurchaseRod:InvokeServer("Pro Fishing Rod")
             task.wait(3)
             break
@@ -1385,7 +1385,7 @@ end
 
 
 local function startDigging()
-    print("Start Digging...")
+    -- print("Start Digging...")
     if Active.Digsite.Important:FindFirstChild("Shovel") then
         Network:WaitForChild("Instancing_FireCustomFromClient"):FireServer("Digsite", "ClaimShovel")
     end
@@ -1409,25 +1409,25 @@ local function startDigging()
 
 
             if not digsiteShovelItems["Normal Shovel"].Buy.Cost.SoldOut.Visible and digsiteCoins >= normalShovelPrice then
-                print("Buying Normal Shovel")
+                -- print("Buying Normal Shovel")
                 Network.DigsiteMerchant_PurchaseShovel:InvokeServer("Normal Shovel")
                 task.wait(3)
                 break
 
             elseif not digsiteShovelItems["Bluesteel Shovel"].Buy.Cost.SoldOut.Visible and digsiteCoins >= bluesteelShovelPrice then
-                print("Buying Bluesteel Shovel")
+                -- print("Buying Bluesteel Shovel")
                 Network.DigsiteMerchant_PurchaseShovel:InvokeServer("Bluesteel Shovel")
                 task.wait(3)
                 break
 
             elseif not digsiteShovelItems["Sharp Shovel"].Buy.Cost.SoldOut.Visible and digsiteCoins >= sharpShovelPrice then
-                print("Buying Sharp Shovel")
+                -- print("Buying Sharp Shovel")
                 Network.DigsiteMerchant_PurchaseShovel:InvokeServer("Sharp Shovel")
                 task.wait(3)
                 break
 
             elseif not digsiteShovelItems["Pro Shovel"].Buy.Cost.SoldOut.Visible and digsiteCoins >= proShovelPrice then
-                print("Buying Pro Shovel")
+                -- print("Buying Pro Shovel")
                 Network.DigsiteMerchant_PurchaseShovel:InvokeServer("Pro Shovel")
                 task.wait(3)
                 break
@@ -1441,7 +1441,7 @@ local function startDigging()
                         task.wait()
                     end
                     return
-                    print("NO CHEST FOUND, SERVER HOPPING...")
+                    -- print("NO CHEST FOUND, SERVER HOPPING...")
                     -- loadstring(game:HttpGet("https://raw.githubusercontent.com/fdvll/pet-simulator-99/main/serverhop.lua"))()
                 end
             else
@@ -1463,7 +1463,7 @@ local function startDigging()
     while Active:FindFirstChild("Digsite") do
         task.wait()
     end
-    print("Done Digging...")
+    -- print("Done Digging...")
 end
 
 -- Might need additional check before starting spawn obby
@@ -1535,7 +1535,7 @@ local function startMinefield()
         end
         task.wait()
     end
-    print("Done with minefield")
+    -- print("Done with minefield")
 end
 
 
@@ -1568,7 +1568,7 @@ local function startJungleObby()
         end
         task.wait()
     end
-    print("Done with JungleObby!")
+    -- print("Done with JungleObby!")
 end
 
 
@@ -1592,7 +1592,7 @@ local function startAtlantis()
         end
         task.wait()
     end
-    print("Done with atlantis!")
+    -- print("Done with atlantis!")
 end
 
 
@@ -1614,7 +1614,7 @@ local function startPyramidObby()
         end
         task.wait()
     end
-    print("Done with PyramidObby!")
+    -- print("Done with PyramidObby!")
 end
 
 
@@ -1634,12 +1634,12 @@ local function startIceObby()
         end
         task.wait()
     end
-    print("Done with IceObby!")
+    -- print("Done with IceObby!")
 end
 
 
 local function teleportToMachine(mapName)
-    print("Teleporting to machine")
+    -- print("Teleporting to machine")
     local zonePath = map[mapName]
     myHumanoidRootPart.CFrame = zonePath.PERSISTENT.Teleport.CFrame + Vector3.new(0, 10, 0)
     task.wait()
@@ -1682,7 +1682,7 @@ local function teleportToMachine(mapName)
         myHumanoidRootPart.CFrame = zonePath.INTERACT.Machines.SuperMachine.PadGlow.CFrame + Vector3.new(20, 10, 0)
     end
     task.wait(2)
-    print("out of tp to machine")
+    -- print("out of tp to machine")
 end
 
 local function checkAndPurchaseEggSlot()
@@ -1701,7 +1701,7 @@ local function checkAndPurchaseEggSlot()
         elseif (currentEggSlots == 30) or (currentEggSlots >= 34 and currentEggSlots <= 64) then
             currentEggSlots = currentEggSlots + 3
         -- else
-        --     print("CANT FIND currentEggSlots!!!")
+        --     -- print("CANT FIND currentEggSlots!!!")
         end
 
         -- check if can afford egg slot
@@ -1716,16 +1716,16 @@ local function checkAndPurchaseEggSlot()
                 teleportedToEggSlotMachine = true
             end
 
-            print("Buying slot " .. tostring(currentEggSlots) .. " for " .. tostring(eggSlotDiamondCost[currentEggSlots]) .. " diamonds")
+            -- print("Buying slot " .. tostring(currentEggSlots) .. " for " .. tostring(eggSlotDiamondCost[currentEggSlots]) .. " diamonds")
             Network.EggHatchSlotsMachine_RequestPurchase:InvokeServer(currentEggSlots)
             task.wait(4)
 
-            print("Purchased egg slot " .. tostring(currentEggSlots))
+            -- print("Purchased egg slot " .. tostring(currentEggSlots))
         else
             break
         end
     end
-    -- print("Broken out of loop")
+    -- -- print("Broken out of loop")
     if teleportedToEggSlotMachine then
         currentZone = nil
         teleportToMaxZone()
@@ -1751,11 +1751,11 @@ local function checkAndPurchasePetSlot()
                 teleportedToPetSlotMachine = true
             end
 
-            print("Buying slot " .. tostring(currentEquipSlots) .. " for " .. tostring(petSlotDiamondCost[currentEquipSlots]) .. " diamonds")
+            -- print("Buying slot " .. tostring(currentEquipSlots) .. " for " .. tostring(petSlotDiamondCost[currentEquipSlots]) .. " diamonds")
             Network.EquipSlotsMachine_RequestPurchase:InvokeServer(currentEquipSlots)
             task.wait(4)
 
-            print("Purchased pet equip slot " .. tostring(currentEquipSlots))
+            -- print("Purchased pet equip slot " .. tostring(currentEquipSlots))
         else
             break
         end
@@ -1787,7 +1787,7 @@ end
 local function getBestEggData()
     bestEgg = clientSaveGet.MaximumAvailableEgg
     eggData = require(Library.Util.EggsUtil).GetByNumber(bestEgg) -- gets eggData.name, .eggNumber
-    -- print("New obtained eggData: ", eggData.name, " (", eggData.eggNumber, ")")
+    -- -- print("New obtained eggData: ", eggData.name, " (", eggData.eggNumber, ")")
 end
 
 
@@ -1821,7 +1821,7 @@ end
 
 
 local function teleportAndHatch()
-    print("In teleport and hatch")
+    -- print("In teleport and hatch")
     -- Teleport to Best Egg
     for _, v in pairs(Workspace.__THINGS.Eggs[worldEgg]:GetChildren()) do
         if string.find(v.Name, tostring(eggData.eggNumber) .. " - ") then
@@ -1836,13 +1836,13 @@ local function teleportAndHatch()
     -- Hatch eggs
     if questName == "BEST_GOLD_PET" then  -- +1 is to hatch 100 extra egg to make sure enough pets to upgrade gold
         for i=1, math.ceil((questActualAmount + 2) * 10 / currentMaxHatch) do
-            print("Hatching", questName, ":", i)
+            -- print("Hatching", questName, ":", i)
             autoHatchEgg()
         end
 
     elseif questName == "BEST_RAINBOW_PET" then
         for i=1, math.ceil((((questActualAmount + 1) * 100) - totalBestPet) / currentMaxHatch) do
-            print("Hatching", questName, ":", i)
+            -- print("Hatching", questName, ":", i)
             autoHatchEgg()
         end
 
@@ -1874,8 +1874,8 @@ local function teleportAndHatch()
         
         
     eggHatchedBefore = eggData.eggNumber
-    print("Hatching", eggData.name)
-    print("Done Hatching...")
+    -- print("Hatching", eggData.name)
+    -- print("Done Hatching...")
 end
 
 
@@ -1919,7 +1919,7 @@ end
 local function consumeRandomEvent(itemName, itemCommand)
     for itemId, tbl in inventory.Misc do
         if tbl.id == itemName then
-            print("Consuming", itemName)
+            -- print("Consuming", itemName)
             Network:WaitForChild(itemCommand):InvokeServer(itemId)
         end
     end
@@ -1927,13 +1927,13 @@ end
 
 
 local function useGoldMachine(tbl)
-    print("Using Gold Machine")
+    -- print("Using Gold Machine")
     if PlaceId == 8737899170 then
         teleportToMachine("10 | Mine")
     else
         teleportToMachine("100 | Tech Spawn")
     end
-    print("Using Gold Machine")
+    -- print("Using Gold Machine")
     local usedGoldMachine = false
     for petId, tbl in inventory.Pet do
         for _, petName in ipairs(bestEggPets) do
@@ -1958,13 +1958,13 @@ end
 
 
 local function useRainbowMachine(tbl)
-    print("Using Rainbow Machine")
+    -- print("Using Rainbow Machine")
     if PlaceId == 8737899170 then
         teleportToMachine("31 | Desert Pyramids")
     else
         teleportToMachine("100 | Tech Spawn")
     end
-    print("Using Rainbow Machine")
+    -- print("Using Rainbow Machine")
     for petId, tbl in inventory.Pet do
         for _, petName in ipairs(bestEggPets) do
             if tbl.id == petName and tbl._am ~= nil and tbl.pt ~= nil and tbl._am >= 10 and tbl.pt == 1 then  -- tbl.pt if 1 means gold
@@ -2025,7 +2025,7 @@ end
 
 -- update upgradePotion to upgrade ALL tier ones before teleporting back
 local function upgradePotion()
-    print("Upgrading Potion")
+    -- print("Upgrading Potion")
     local amountToUpgrade
     if PlaceId == 8737899170 then
         teleportToMachine("13 | Dark Forest")
@@ -2071,7 +2071,7 @@ local function checkAndRedeemRankRewards()
         totalRankStars = totalRankStars + tbl.StarsRequired
         if RankStars >= totalRankStars then
             if not clientSaveGet.RedeemedRankRewards[tostring(questNum)] then -- [num] num has to be string
-                print("Redeeming Reward:", questNum)
+                -- print("Redeeming Reward:", questNum)
                 Network:WaitForChild("Ranks_ClaimReward"):FireServer(questNum)
                 break
             end
@@ -2089,7 +2089,7 @@ end
 Network:WaitForChild("ForeverPacks: Claim Free"):InvokeServer("Default")  -- collect free foreverpack
 
 if not clientSaveGet.PickedStarterPet then
-    print("New Account Detected... Picking Starter Pets.")
+    -- print("New Account Detected... Picking Starter Pets.")
     Network:WaitForChild("Pick Starter Pets"):InvokeServer(unpack({"Cat", "Dog"}))
     task.wait(5)
 end
@@ -2152,7 +2152,7 @@ task.spawn(function()
 end)
 
 
-print("Autorank Starting...")
+-- print("Autorank Starting...")
 teleportToMaxZone()
 getBestEggData()
 getBestEggPets()
@@ -2183,7 +2183,7 @@ while rebirthNotDone do
             local success, _ = Network.Zones_RequestPurchase:InvokeServer(nextZoneName)
             if success then
                 boughtNewZone = true
-                print("Successfully purchased " .. nextZoneName)
+                -- print("Successfully purchased " .. nextZoneName)
                 startAutoHatchEggDelay = tick()
                 task.wait(1)
             else
@@ -2199,7 +2199,7 @@ while rebirthNotDone do
     if getgenv().autoWorldConfig.AUTO_REBIRTH then
         pcall(function()
             if maxZoneData.ZoneNumber >= rebirthZone then
-                print("Rebirthing")
+                -- print("Rebirthing")
                 Network.Rebirth_Request:InvokeServer(tostring(rebirthNumber))
                 task.wait(15)
                 maxZoneName, maxZoneData = zoneCmds.GetMaxOwnedZone()
@@ -2274,7 +2274,7 @@ while rebirthNotDone do
 
             -- Using Misc Items
             if questName == "BEST_LUCKYBLOCK" then
-                print("Doing Quest:", questName)
+                -- print("Doing Quest:", questName)
                 for itemId, tbl in inventory.Misc do
                     if tbl.id == "Mini Lucky Block" then
                         for i=1, questActualAmount do
@@ -2301,7 +2301,7 @@ while rebirthNotDone do
 
 
             elseif questName == "BEST_PINATA" then
-                print("Doing Quest:", questName)
+                -- print("Doing Quest:", questName)
                 for itemId, tbl in inventory.Misc do
                     if tbl.id == "Mini Pinata" then
                         for i=1, questActualAmount do
@@ -2328,10 +2328,10 @@ while rebirthNotDone do
 
 
             elseif questName == "BEST_COMET" or questName == "COMET" then
-                print("Doing Quest:", questName)
+                -- print("Doing Quest:", questName)
                 for itemId, tbl in inventory.Misc do
                     if tbl.id == "Comet" then
-                        print(tbl.id, itemId)
+                        -- print(tbl.id, itemId)
                         for i=1, questActualAmount do
                             while true do
                                 task.wait()
@@ -2356,7 +2356,7 @@ while rebirthNotDone do
 
 
             elseif questName == "BEST_COIN_JAR" or questName == "COIN_JAR" then
-                print("Doing Quest:", questName)
+                -- print("Doing Quest:", questName)
                 local coinJar
                 for itemId, tbl in inventory.Misc do
                     task.wait()
@@ -2391,11 +2391,11 @@ while rebirthNotDone do
 
             -- Collecting (update required, boss chest zone)
             elseif questName == "COLLECT_POTION" or questName == "COLLECT_ENCHANT" then
-                print("Doing Quest:", questName)
-                print("Beach Boss Chest Cooldown Time: ".. (os.time() - beachBossChestCooldownStart))
-                print("Underworld Boss Chest Cooldown Time: ".. (os.time() - underWorldBossChestCooldownStart))
-                print("No Path Forest Boss Chest Cooldown Time: ".. (os.time() - noPathForestBossChestCooldownStart))
-                print("Heaven Gates Boss Chest Cooldown Time: ".. (os.time() - heavenGatesBossChestCooldownStart))
+                -- print("Doing Quest:", questName)
+                -- print("Beach Boss Chest Cooldown Time: ".. (os.time() - beachBossChestCooldownStart))
+                -- print("Underworld Boss Chest Cooldown Time: ".. (os.time() - underWorldBossChestCooldownStart))
+                -- print("No Path Forest Boss Chest Cooldown Time: ".. (os.time() - noPathForestBossChestCooldownStart))
+                -- print("Heaven Gates Boss Chest Cooldown Time: ".. (os.time() - heavenGatesBossChestCooldownStart))
 
                 if PlaceId == 8737899170 and 
                 ((os.time() - beachBossChestCooldownStart >= bossChestCooldown and maxZoneData.ZoneNumber >= 20) or
@@ -2417,13 +2417,13 @@ while rebirthNotDone do
 
             -- Upgrading
             elseif maxZoneData.ZoneNumber >= 13 and questName == "UPGRADE_POTION" then
-                print("Doing Quest:", questName)
+                -- print("Doing Quest:", questName)
                 -- tier 3 upgrade to 4 requires 4
                 -- tier 1/2 upgrade to 2/3 requires 3
                 upgradePotion()
 
             elseif maxZoneData.ZoneNumber >= 16 and questName == "UPGRADE_ENCHANT" then
-                print("Doing Quest:", questName)
+                -- print("Doing Quest:", questName)
                 -- tier 4 upgrade to 5 requires 7
                 -- tier 1-3 upgrade to 2-4 requires 5
                 upgradeEnchant()
@@ -2431,7 +2431,7 @@ while rebirthNotDone do
 
             -- Upgrading Pets
             elseif maxZoneData.ZoneNumber >= 10 and questName == "BEST_GOLD_PET" then
-                print("Doing Quest:", questName)
+                -- print("Doing Quest:", questName)
                 startAutoHatchEggDelay = time()
                 while checkType(clientSaveGet.Goals[goalsNumber]["Type"]) == "BEST_GOLD_PET" do
                     task.wait()
@@ -2453,7 +2453,7 @@ while rebirthNotDone do
                 teleportToMaxZone()
 
             elseif maxZoneData.ZoneNumber >= 31 and questName == "BEST_RAINBOW_PET" then
-                print("Doing Quest:", questName)
+                -- print("Doing Quest:", questName)
                 startAutoHatchEggDelay = time()
                 while checkType(clientSaveGet.Goals[goalsNumber]["Type"]) == "BEST_RAINBOW_PET" do
                     task.wait()
@@ -2493,7 +2493,7 @@ while rebirthNotDone do
             -- Using Items
             -- Potions cooldown too long, have to drink when required for goals
             elseif questName == "USE_POTION" then
-                print("Doing Quest:", questName)
+                -- print("Doing Quest:", questName)
                 for i=1, questActualAmount do
                     questPotionTier = questPotionTier + 1
                     consumeGoalsPotion(questPotionTier)
@@ -2502,13 +2502,13 @@ while rebirthNotDone do
             -- Fruits ignored, will be eaten eventually within 5 mins.
             -- elseif questName == "USE_FRUIT" then
             elseif questName == "USE_FLAG" then
-                print("Doing Quest:", questName)
+                -- print("Doing Quest:", questName)
                 for i=1, questActualAmount do
                     if getupvalues(flexibleFlagCmds.GetActiveFlag)[3]["1!".. zoneCmds.GetMaxOwnedZone() .."!Main"] ~= nil then
                         local activeFlagName = getupvalues(flexibleFlagCmds.GetActiveFlag)[3]["1!".. zoneCmds.GetMaxOwnedZone() .."!Main"].FlagId  -- get active flag name in specified zone.
                         for itemId, tbl in inventory.Misc do
                             if tbl.id == activeFlagName then
-                                print("Using ", tbl.id)
+                                -- print("Using ", tbl.id)
                                 flexibleFlagCmds.Consume(tbl.id, itemId)
                                 task.wait(1)
                             end
@@ -2516,7 +2516,7 @@ while rebirthNotDone do
                     else
                         for itemId, tbl in inventory.Misc do
                             if tbl.id == "Coins Flag" or tbl.id == "Diamonds Flag" then
-                                print("Using ", tbl.id)
+                                -- print("Using ", tbl.id)
                                 flexibleFlagCmds.Consume(tbl.id, itemId)
                                 task.wait(1)
                             end
@@ -2528,7 +2528,7 @@ while rebirthNotDone do
             -- Hatch Eggs
             elseif questName == "EGG" then
                 if checkEnoughCoinsToHatch(tonumber(questActualAmount)) then
-                    print("Doing Quest:", questName)
+                    -- print("Doing Quest:", questName)
                     startAutoHatchEggDelay = time()
                     BEST_EGG = true
                     teleportAndHatch()
@@ -2537,7 +2537,7 @@ while rebirthNotDone do
                 end
             elseif questName == "BEST_EGG" then
                 if checkEnoughCoinsToHatch(tonumber(questActualAmount)) then
-                    print("Doing Quest:", questName)
+                    -- print("Doing Quest:", questName)
                     startAutoHatchEggDelay = time()
                     BEST_EGG = true
                     teleportAndHatch()
@@ -2546,7 +2546,7 @@ while rebirthNotDone do
                 end
             elseif maxZoneData.ZoneNumber >= getgenv().autoWorldConfig.ZONE_TO_REACH and questName == "HATCH_RARE_PET" then
                 if checkEnoughCoinsToHatch(1000) then
-                    print("Doing Quest:", questName)
+                    -- print("Doing Quest:", questName)
                     startAutoHatchEggDelay = time()
                     if len(clientSaveGet.Goals) > 0 then
                         HATCH_RARE_PET = true
@@ -2558,8 +2558,8 @@ while rebirthNotDone do
 
             -- DIGGING AND FISHING
             elseif maxZoneData.ZoneNumber >= 27 and questName == "FISHING" and PlaceId == 8737899170 then
-                print("Doing Quest:", questName)
-                print("Doing Fishing")
+                -- print("Doing Quest:", questName)
+                -- print("Doing Fishing")
                 teleportToInstance("Fishing")
                 startAutoHatchEggDelay = time()
                 if not fishingOptimized then
@@ -2571,7 +2571,7 @@ while rebirthNotDone do
                 teleportToMaxZone()
 
             elseif maxZoneData.ZoneNumber >= 30 and questName == "DIGSITE" and PlaceId == 8737899170 then
-                print("Doing Quest:", questName)
+                -- print("Doing Quest:", questName)
                 if len(clientSaveGet.Goals) > 0 then
                     teleportToDigsite()
                     startAutoHatchEggDelay = time()
@@ -2625,7 +2625,7 @@ while rebirthNotDone do
             -- ignore sledrace (have to wait for progressing race to finish)
 
             elseif maxZoneData.ZoneNumber >= 6 and questName == "BREAKABLE" and breakableType == "Present" then
-                print("Breaking Present")
+                -- print("Breaking Present")
                 teleportToPresentOrSafe("6 | Cherry Blossom")
                 startAutoHatchEggDelay = time()
                 repeat
@@ -2635,7 +2635,7 @@ while rebirthNotDone do
                 teleportToMaxZone()
 
             elseif maxZoneData.ZoneNumber >= 22 and questName == "BREAKABLE" and breakableType == "Safe" then
-                print("Breaking Safe")
+                -- print("Breaking Safe")
                 teleportToPresentOrSafe("22 | Shipwreck")
                 startAutoHatchEggDelay = time()
                 repeat
@@ -2650,7 +2650,7 @@ while rebirthNotDone do
     task.wait()
 end
 
-print("Done with rank")
+-- print("Done with rank")
 
 
 
