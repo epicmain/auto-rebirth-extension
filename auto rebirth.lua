@@ -2215,6 +2215,7 @@ while rebirthNotDone do
     getBestEggData()
     getBestEggPets()
 
+    print(tick() - startAutoHatchEggDelay)
     if maxZoneData.ZoneNumber < getgenv().autoWorldConfig.ZONE_TO_REACH and 
     (tick() - startAutoHatchEggDelay) >= autoHatchEggDelay and 
     eggHatchedBefore ~= eggData.eggNumber then
@@ -2228,7 +2229,10 @@ while rebirthNotDone do
             end)
         end
         
+        print(bestEggPrice)
+        print(eggData.name)
         maxAmountToHatch = math.floor(currencyCmds.Get(worldCoin) / bestEggPrice)
+        print(maxAmountToHatch)
         if maxAmountToHatch >= 40 then  -- limit hatch incase too many
             maxAmountToHatch = 40
         end
