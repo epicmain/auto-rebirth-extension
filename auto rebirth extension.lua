@@ -353,9 +353,7 @@ local function petTargetChestAndBreakables()
         if normalOrChest == "Chest" then 
             args[1][petId] = chest
         else
-            pcall(function()
-                args[1][petId] = normal[normalNum]
-            end)
+            args[1][petId] = normal[normalNum]
         end
     end
 
@@ -379,8 +377,7 @@ while true do
             end
         end
     end)
-    
-    print(zoneName, "Outside")
+
     if activeChild == 0 then
         print(zoneName)
         if len(require(Client.BreakableCmds).AllByZoneAndClass(zoneName, "Chest")) >= 1 and 
