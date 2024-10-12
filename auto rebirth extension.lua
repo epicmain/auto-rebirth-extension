@@ -380,9 +380,7 @@ while true do
         end
     end)
     
-    print(zoneName, "Outside")
     if activeChild == 0 then
-        print(zoneName)
         if len(require(Client.BreakableCmds).AllByZoneAndClass(zoneName, "Chest")) >= 1 and 
         zoneName ~= "Beach" and 
         zoneName ~= "Underworld" and 
